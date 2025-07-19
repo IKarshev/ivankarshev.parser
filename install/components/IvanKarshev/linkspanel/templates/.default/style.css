@@ -1,0 +1,157 @@
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.space-between {
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.block-title {
+  margin: 0;
+}
+
+#SaveLinkForm .form-header h1 {
+  margin-top: 0;
+}
+#SaveLinkForm .static-field-list {
+  padding-left: 0;
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  row-gap: 6px;
+}
+#SaveLinkForm .static-field-list li > div {
+  font-size: 14px;
+}
+#SaveLinkForm .field-list {
+  display: flex;
+  flex-direction: column;
+  width: 800px;
+  max-width: 800px;
+  row-gap: 20px;
+  -moz-column-gap: 20px;
+       column-gap: 20px;
+}
+#SaveLinkForm .field-list .input_cont {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#SaveLinkForm .field-list .input_cont .multiple-prop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: scroll;
+}
+#SaveLinkForm .field-list .input_cont .multiple-prop input {
+  width: 100%;
+  box-sizing: border-box;
+}
+#SaveLinkForm .field-list .input_cont label {
+  margin-bottom: 4px;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 145%;
+  margin-bottom: 5px;
+}
+#SaveLinkForm .field-list .input_cont input {
+  padding: 16px 16px;
+  outline: none;
+  background: #FFFFFF;
+  border: 1px solid #E8E8E8;
+  border-radius: 4px;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 145%;
+  color: #343434;
+}
+#SaveLinkForm .field-list .input_cont input.error {
+  border-color: #D90000;
+  color: #D90000;
+}
+#SaveLinkForm .field-list .input_cont input::-moz-placeholder {
+  color: inherit;
+}
+#SaveLinkForm .field-list .input_cont input::placeholder {
+  color: inherit;
+}
+#SaveLinkForm .field-list .input_cont input:-moz-read-only {
+  opacity: 0.5;
+  cursor: no-drop;
+}
+#SaveLinkForm .field-list .input_cont input:read-only {
+  opacity: 0.5;
+  cursor: no-drop;
+}
+#SaveLinkForm .error_placement {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  margin: 12px 0;
+}
+#SaveLinkForm .error_placement .error {
+  color: #D90000;
+  font-size: 14px;
+}
+#SaveLinkForm .button_container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  -moz-column-gap: 20px;
+       column-gap: 20px;
+  row-gap: 20px;
+}
+@media (max-width: 960px) {
+  #SaveLinkForm .button_container {
+    flex-direction: column;
+    max-width: none;
+  }
+}
+#SaveLinkForm .button_container .btn {
+  display: block;
+  box-sizing: border-box;
+  width: calc(50% - 10px);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 25.2px;
+  text-align: center;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+@media (max-width: 960px) {
+  #SaveLinkForm .button_container .btn {
+    width: 100%;
+  }
+}
+#SaveLinkForm .button_container .btn-save {
+  color: #fff;
+  background-color: #D90000;
+  border: 1px solid #D90000;
+  padding: 17.5px 40px;
+  outline: none;
+}
+#SaveLinkForm .button_container .btn-save:hover {
+  transition: 0.3s;
+  background-color: #b10000;
+  border-color: #b10000;
+}
+#SaveLinkForm .button_container .btn-cancel {
+  color: #D90000;
+  background-color: #fff;
+  border: 1px solid #D90000;
+  text-align: center;
+  padding: 17.5px 40px;
+}
+#SaveLinkForm .button_container .btn-cancel:hover {
+  transition: 0.3s;
+  color: #b10000;
+  border-color: #b10000;
+}/*# sourceMappingURL=style.css.map */
