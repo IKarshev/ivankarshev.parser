@@ -4,6 +4,7 @@ use Bitrix\Main\Localization\Loc,
     Bitrix\Main\IO\Directory,
     CUserOptions;
 
+use DateTime;
 use Bitrix\Main\Entity;
 
 use Ivankarshev\Parser\Orm\{LinkTargerTable, ParseQueueTable, PriceTable};
@@ -52,6 +53,7 @@ Class Ivankarshev_Parser extends CModule
         $this->UnInstallDB();
         $this->UnInstallEvents();
         $this->UnInstallFiles();
+        $this->UnInstallAgent();
 
         UnRegisterModule($this->MODULE_ID);
         
@@ -64,9 +66,8 @@ Class Ivankarshev_Parser extends CModule
 
     function InstallAgent()
     {
-        /*
-        CAgent::AddAgent(
-            "\\Ivankarshev\\Parser\\CalculateSale\\CalculateSaleQueueController::CalculateSaleAgent();",
+        \CAgent::AddAgent(
+            "\\Ivankarshev\\Parser\\PriceParser\\PriceParserQueueManager::parseAgent();",
             $this->MODULE_ID,
             "N",
             60,
@@ -75,17 +76,28 @@ Class Ivankarshev_Parser extends CModule
             "",
             30
         );
-        */
+        \CAgent::AddAgent(
+            "\\Ivankarshev\\Parser\\PriceParser\\PriceParserQueueManager::startFullParseAgent();",
+            $this->MODULE_ID,
+            "N",
+            86400,
+            "",
+            "Y",
+            (new DateTime())->format("Y-m-d"). ' 00:00:00',
+            30
+        );
     }
 
     function UnInstallAgent()
     {
-        /*
-        CAgent::DeleteAgent(
-            "\\Ivankarshev\\Parser\\CalculateSale\\CalculateSaleQueueController::CalculateSaleAgent();", 
+        \CAgent::RemoveAgent(
+            "\\Ivankarshev\\Parser\\PriceParser\\PriceParserQueueManager::parseAgent();", 
             $this->MODULE_ID
         );
-        */
+        \CAgent::RemoveAgent(
+            "\\Ivankarshev\\Parser\\PriceParser\\PriceParserQueueManager::startFullParseAgent();", 
+            $this->MODULE_ID
+        );
     }
 
     function InstallDB(){
