@@ -9,7 +9,7 @@ use Bitrix\Main\Loader,
     Bitrix\Main\UI\PageNavigation,
     CUtil;
 
-use Ivankarshev\Parser\Orm\LinkTargerTable;
+use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable};
 
 Loader::includeModule('ivankarshev.parser');
 
@@ -45,7 +45,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
     
     public function configureActions(){
         return [
-            'EditLinkData' => ['prefilters' => [],'postfilters' => []],
+            // 'EditLinkData' => ['prefilters' => [],'postfilters' => []],
             // 'SaveEditProfile' => ['prefilters' => [],'postfilters' => []],
         ];
     }
@@ -177,6 +177,12 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                             'ID' => $row['ID'],
                         ]).')',
                     ],
+                    [
+                        'text' => 'Удалить',
+                        'onclick' => 'removeLinkItem('.CUtil::PhpToJSObject([
+                            'ID' => $row['ID'],
+                        ]).')',
+                    ],
                 ],
                 
             ];
@@ -195,28 +201,31 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
 
     public static function EditLinkDataAction()
     {
-        /**/
+       
         try {
             $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
             $LinkId = $request->getPost('ID');
             $templateFolder = $request->getPost('TEMPLATE_FOLDER');
+            $isNewItem = is_null($LinkId);
 
-            $dataRequest = LinkTargerTable::getList([
-                'select' => ['*'],
-                'filter' => ['ID' => $LinkId],
-            ])->fetchAll();
-            
-            if (empty($dataRequest)) {
-                throw new \Exception("Элемент не найден");
-            } else{
-                $RowItem = array_shift($dataRequest);
+            if ($LinkId) {
+                $dataRequest = LinkTargerTable::getList([
+                    'select' => ['*'],
+                    'filter' => ['ID' => $LinkId],
+                ])->fetchAll();
+                
+                if (empty($dataRequest)) {
+                    throw new \Exception("Элемент не найден");
+                } else{
+                    $RowItem = array_shift($dataRequest);
+                }
             }
 
             $arResult = [
                 [
                     'CODE' => 'ID',
                     'NAME' => 'ID записи',
-                    'VALUE' => $RowItem['ID'],
+                    'VALUE' => $RowItem['ID'] ?? '',
                     'ONLY_READ' => true,
                     'IS_REQUIRED' => true,
                     'MULTIPLE' => false,
@@ -224,7 +233,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 [
                     'CODE' => 'LINK',
                     'NAME' => 'Наш товар',
-                    'VALUE' => $RowItem['LINK'],
+                    'VALUE' => $RowItem['LINK'] ?? '',
                     'ONLY_READ' => false,
                     'IS_REQUIRED' => true,
                     'MULTIPLE' => false,
@@ -232,7 +241,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 [
                     'CODE' => 'TARGET_LINK',
                     'NAME' => 'Товар конкурента',
-                    'VALUE' => $RowItem['TARGET_LINK'],
+                    'VALUE' => $RowItem['TARGET_LINK'] ?? '',
                     'ONLY_READ' => false,
                     'IS_REQUIRED' => true,
                     'MULTIPLE' => false,
@@ -244,7 +253,62 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             $form = ob_get_contents();
             ob_end_clean();
     
-            return $form ?? '';            
+            return $form ?? '';
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public static function SaveEditProfileAction(): void
+    {
+        try {
+            $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
+            $post = $request->getPostList();
+
+            $itemId = $request->getPost('ID');
+            $itemLink = $request->getPost('LINK');
+            $itemTargetLink = $request->getPost('TARGET_LINK');
+            $isNew = $request->getPost('is_new');
+
+            if (!$itemId && $isNew) {
+                LinkTargerTable::add([
+                    'LINK' => $itemLink,
+                    'TARGET_LINK' => $itemTargetLink,
+                ]);
+            } elseif($itemId) {
+                LinkTargerTable::update(
+                    $itemId,
+                    [
+                        'LINK' => $itemLink,
+                        'TARGET_LINK' => $itemTargetLink,
+                    ]
+                );
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public static function deleteElementAction(): void
+    {
+        try {
+            $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
+            $itemId = $request->getPost('ID');
+            
+            if ($itemId) {
+                LinkTargerTable::delete($itemId);
+
+                $priceIdList = PriceTable::getList([
+                    'select' => ['ID'],
+                    'filter' => ['LINK_TARGET' => $itemId],
+                ])->fetchAll();
+                
+                if (!empty($priceIdList)) {
+                    foreach (array_column($priceIdList, 'ID') as $currentItemId) {
+                        PriceTable::delete($currentItemId);
+                    }
+                }
+            }
         } catch (\Throwable $th) {
             throw $th;
         }

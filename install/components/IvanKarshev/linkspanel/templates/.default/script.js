@@ -1,4 +1,4 @@
-var editProfileForm;
+var editLinkForm;
 function editLinkData( Data )
 {
     BX.ajax.runComponentAction('IvanKarshev:linkspanel', 'EditLinkData', {
@@ -11,9 +11,9 @@ function editLinkData( Data )
         response => {
             var ob = BX.processHTML(response.data);
 
-            var editProfileFormID = "EditProfileContainer";
-            editProfileForm = BX.PopupWindowManager.create(editProfileFormID, null, {
-                content: BX(editProfileFormID),
+            var editLinkFormID = "EditProfileContainer";
+            editLinkForm = BX.PopupWindowManager.create(editLinkFormID, null, {
+                content: BX(editLinkFormID),
                 closeIcon: {right: "20px", top: "10px" },
                 titleBar: {content: BX.create("span", {'props': {'className': 'access-title-bar'}})}, 
                 zIndex: 0,
@@ -27,11 +27,28 @@ function editLinkData( Data )
                     opacity: 500
                 },
             });
-            if (BX.PopupWindowManager.isPopupExists(editProfileFormID)) {
-                editProfileForm.setContent(`${ob.HTML}`);
+            if (BX.PopupWindowManager.isPopupExists(editLinkFormID)) {
+                editLinkForm.setContent(`${ob.HTML}`);
                 BX.ajax.processScripts(ob.SCRIPT);
             };
-            editProfileForm.show();
+            editLinkForm.show();
+        },
+        error => {
+            alert('Error: ' + error);
+        },
+    );
+}
+
+function removeLinkItem( Data )
+{
+    BX.ajax.runComponentAction('IvanKarshev:linkspanel', 'deleteElement', {
+        mode: 'class',
+        data: {
+            'ID': Data.ID
+        },
+    }).then(
+        response => {
+            RefrechGrid(arResult.LIST_ID);
         },
         error => {
             alert('Error: ' + error);
@@ -48,11 +65,9 @@ function RefrechGrid(gridID) // RefrechGrid(arResult.LIST_ID);
 }
 
 $(function(){
-    $('body').on('click', '.js-add-element', function(event){
+    $('body').on('click', '.js-new-item-popup', function(event){
         event.preventDefault();
 
-        let input_cont = $(this).closest('.input_cont');
-        let input = $(input_cont).find('.multiple-prop input');
-        $(input_cont).find('.multiple-prop').append( $(input)[0].outerHTML );
+        editLinkData({'ID': null});
     })
 })

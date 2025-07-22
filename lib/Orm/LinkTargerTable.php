@@ -1,7 +1,7 @@
 <?
 namespace Ivankarshev\Parser\Orm;
 
-use Bitrix\Main\Entity;
+use Bitrix\Main\{Entity, Event};
 use Bitrix\Main\Entity\{IntegerField, StringField};
 
 class LinkTargerTable extends Entity\DataManager

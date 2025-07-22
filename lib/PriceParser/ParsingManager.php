@@ -7,7 +7,7 @@ use Ivankarshev\Parser\Helper;
 
 class ParsingManager
 {
-    protected function getSiteDomain(string $url): string
+    protected function getSiteDomain(string $url): ?string
     {
         return Helper::parseUrlAll($url)['domainX'];
     }
@@ -30,7 +30,10 @@ class ParsingManager
         if ($parseClass = $this->getParseClass($url)) {
             return new $parseClass($url);
         } else {
-            $domain = self::getSiteDomain($url);
+            $domain = (($siteDomain = self::getSiteDomain($url))!==null) 
+                ? trim($siteDomain) 
+                : 'null';
+
             throw new ParseClassNotFoundException("Класс для парсера сайта $domain не найден");
         }
     }

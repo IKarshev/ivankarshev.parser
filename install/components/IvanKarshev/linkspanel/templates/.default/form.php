@@ -1,15 +1,29 @@
 <?php
 if ( ! defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 /**
- * @var $arResult
+ * @var array $arResult - данные
+ * @var bool $isNewItem - товар новый
  */
+
+$ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==null)
+    ? $arResult[$itemKey]['VALUE']
+    : null;
+
 ?>
 
 <form action="" id="SaveLinkForm">
     <div class="form-header">
-        <h1>Редактирование</h1>
+        <h1><?=$isNewItem ? "Новый элемент" : "Редактирование ссылки №$ItemId"?></h1>
         <div class="field-list">
-            <?foreach ($arResult as $arkey => $arItem): ?>
+            <?if($ItemId!==null && !$isNewItem):?>
+                <input type="hidden" name="ID" value="<?=$ItemId?>">
+            <?endif;?>
+            <input type="hidden" name="is_new" value="<?=$isNewItem?>">
+            
+            <?foreach ($arResult as $arkey => $arItem):
+                if ($arItem['CODE']=='ID') {
+                    continue;
+                }?>
                 <div class="input_cont">
                     <label for="<?=$arItem['CODE']?>"><?=$arItem['NAME']?></label>
                     <input 
@@ -26,14 +40,12 @@ if ( ! defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
     <div class="error_placement"></div>
     <div class="button_container">
         <button type="submit" class="btn btn-save">Сохранить</button>
-        <a href="javaScript::void(0)" class="btn btn-cancel" onclick="editProfileForm.close()">Отмена</a>
+        <a href="javaScript::void(0)" class="btn btn-cancel" onclick="editLinkForm.close()">Отмена</a>
     </div>
 </form>
 <script>
-    console.log('test');
-    <?/*
     $('body').on('click', '.btn-cancel', function(){
-        editProfileForm.close(); 
+        editLinkForm.close(); 
     });
 
     var propertys = <?=CUtil::PhpToJSObject($arResult)?>;
@@ -49,13 +61,13 @@ if ( ! defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
         submitHandler : function(form, event){
             event.preventDefault();    
 
-            BX.ajax.runComponentAction('kontur:paymentProfiles', 'SaveEditProfile', {
+            BX.ajax.runComponentAction('IvanKarshev:linkspanel', 'SaveEditProfile', {
                 mode: 'class',
                 data: new FormData( document.getElementById('SaveLinkForm') ),
             }).then(
                 response => {
-                    editProfileForm.close();
-                    RefrechGrid('PAYMENT_PROFILES_GRID');
+                    editLinkForm.close();
+                    RefrechGrid('LINK_LIST_GRID');
                 },
                 error => {
                     console.log(error);
@@ -68,23 +80,11 @@ if ( ! defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
     propertys.forEach(function(item, i, arr) {
         ValidateSettings["rules"][`${item.CODE}`] = {
             "required": item.IS_REQUIRED,
-            "email" : (item.CODE == "EMAIL") ? true : false,
-            "checkPhone": (item.CODE == "PHONE") ? 11 : false,
-            // "min-width": (item.CODE == "INN") ? 12 : false,
         };
         ValidateSettings["messages"][`${item.CODE}`] = {
             "required": `Поле "${item.NAME}" не заполнено`,
-            "email": `Не корректно заполнен E-mail`,
-            "checkPhone": `Номер телефона введен не корректно`,
-            // "min-width": `Не корректно заполнено поле "${item.NAME}"`,
         };
     });
 
-    $.mask.definitions['h'] = "[0|1|3|4|5|6|7|9]";
-
-    $('#SaveLinkForm input[name=PHONE]').mask("+7 (h99) 999-99-99");
-    $('#SaveLinkForm input[name=INN]').mask("999999999999");
-
     $(`#SaveLinkForm`).validate(ValidateSettings);
-    */?>
 </script>

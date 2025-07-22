@@ -11,6 +11,13 @@
     margin: 0;
 } 
 
+.filter-btn-row{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
 #SaveLinkForm{
     .form-header{
         h1{

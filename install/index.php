@@ -1,4 +1,5 @@
 <?
+use Bitrix\Main\ORM\EventManager as OrmEventManager;
 use Bitrix\Main\{Application, EventManager, Loader};
 use Bitrix\Main\Localization\Loc,
     Bitrix\Main\IO\Directory,
@@ -83,7 +84,7 @@ Class Ivankarshev_Parser extends CModule
             86400,
             "",
             "Y",
-            (new DateTime())->format("Y-m-d"). ' 00:00:00',
+            (new DateTime())->add(new \DateInterval("P1D"))->format("d.m.Y"). ' 00:00:00',
             30
         );
     }
@@ -142,6 +143,22 @@ Class Ivankarshev_Parser extends CModule
             'Ivankarshev\\Parser\\Main\\EventHandlers\\OnBuildGlobalMenuHandler',
             'init'
         );
+        /*
+        OrmEventManager::getInstance()->registerEventHandler(
+            LinkTargerTable::class,
+            Entity\DataManager::EVENT_ON_AFTER_ADD,
+            $this->MODULE_ID,
+            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
+            'onAfterAddHandler'
+        );
+        OrmEventManager::getInstance()->registerEventHandler(
+            LinkTargerTable::class,
+            Entity\DataManager::EVENT_ON_AFTER_UPDATE,
+            $this->MODULE_ID,
+            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
+            'onAfterUpdateHandler'
+        );
+        */
         return true;
     }
 
@@ -153,6 +170,22 @@ Class Ivankarshev_Parser extends CModule
             'Ivankarshev\\Parser\\Main\\EventHandlers\\OnBuildGlobalMenuHandler',
             'init'
         );
+        /*
+        OrmEventManager::getInstance()->unRegisterEventHandler(
+            LinkTargerTable::class,
+            Entity\DataManager::EVENT_ON_AFTER_ADD,
+            $this->MODULE_ID,
+            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
+            'onAfterAddHandler'
+        );
+        OrmEventManager::getInstance()->unRegisterEventHandler(
+            LinkTargerTable::class,
+            Entity\DataManager::EVENT_ON_AFTER_UPDATE,
+            $this->MODULE_ID,
+            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
+            'onAfterUpdateHandler'
+        );
+        */
         return true;
     }
 
