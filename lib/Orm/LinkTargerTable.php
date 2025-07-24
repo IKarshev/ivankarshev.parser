@@ -3,6 +3,10 @@ namespace Ivankarshev\Parser\Orm;
 
 use Bitrix\Main\{Entity, Event};
 use Bitrix\Main\Entity\{IntegerField, StringField};
+use Ivankarshev\Parser\Orm\PriceTable;
+
+use Bitrix\Main\ORM\Fields\Relations\{Reference, OneToMany};
+use Bitrix\Main\ORM\Query\Join;
 
 class LinkTargerTable extends Entity\DataManager
 {
@@ -15,8 +19,11 @@ class LinkTargerTable extends Entity\DataManager
     {
         return array(
             new IntegerField('ID', array('primary' => true, 'autocomplete' => true)),
-            new StringField('LINK'),
-            new StringField('TARGET_LINK'),
+            (new Reference('LINK_ITEMS',
+					PriceTable::class,
+					Join::on('this.ID', 'ref.LINK_ID')
+                ))->configureJoinType('inner'),
+            new StringField('PRODUCT_NAME'),
         );
     }
 }

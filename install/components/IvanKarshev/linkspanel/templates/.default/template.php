@@ -20,13 +20,13 @@ $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 
 <div class="filter-btn-row">
 	<div class="ui-filter">
-		<?$APPLICATION->IncludeComponent('bitrix:main.ui.filter', '', [
+		<?/*$APPLICATION->IncludeComponent('bitrix:main.ui.filter', '', [
 			'FILTER_ID' => $arResult['LIST_ID'],
 			'GRID_ID' => $arResult['LIST_ID'],
 			'FILTER' => $arResult['FILTER_ARRAY'],
 			'ENABLE_LIVE_SEARCH' => true,
 			'ENABLE_LABEL' => true
-		]);?>
+		]);*/?>
 	</div>
 	<div class="btn-row">
 		<button class="ui-btn ui-btn-primary js-new-item-popup">Добавить ссылку</button>
@@ -42,9 +42,12 @@ $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 		'NAV_OBJECT' => $nav,
 		'AJAX_ID' => \CAjax::getComponentID('bitrix:main.ui.grid', '.default', ''),
 		'PAGE_SIZES' =>  [
+			['NAME' => '1', 'VALUE' => '1'],
+			['NAME' => '2', 'VALUE' => '2'],
+
 			['NAME' => '20', 'VALUE' => '20'],
-			['NAME' => '50', 'VALUE' => '50'],
-			['NAME' => '100', 'VALUE' => '100']
+			// ['NAME' => '50', 'VALUE' => '50'],
+			// ['NAME' => '100', 'VALUE' => '100']
 		],
 		'AJAX_MODE' => 'Y',
 		'AJAX_OPTION_JUMP'          => 'N',

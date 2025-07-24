@@ -16,12 +16,27 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
 }
 
 #SaveLinkForm{
     .form-header{
-        h1{
-            margin-top: 0;
+        .title-row{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            h1{
+                margin-top: 0;
+            }
+            .htn{
+                font-size: 16px;
+                cursor: pointer;
+                &:hover{
+                    transition: .3s;
+                    color: #b10000;
+                }
+            }
         }
     }
     .static-field-list{

@@ -9,11 +9,23 @@ $ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==nu
     ? $arResult[$itemKey]['VALUE']
     : null;
 
+ob_start();
+echo "ItemId: $ItemId \n";
+print_r($arResult);
+$debug = ob_get_contents();
+ob_end_clean();
+$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params2.log', 'w+');
+fwrite($fp, $debug);
+fclose($fp);
+
 ?>
 
 <form action="" id="SaveLinkForm">
     <div class="form-header">
-        <h1><?=$isNewItem ? "Новый элемент" : "Редактирование ссылки №$ItemId"?></h1>
+        <div class="title-row">
+            <h1><?=$isNewItem ? "Новый элемент" : "Редактирование ссылки №$ItemId"?></h1>
+            <div class="htn js-add-link">Добавить ссылку</div>
+        </div>
         <div class="field-list">
             <?if($ItemId!==null && !$isNewItem):?>
                 <input type="hidden" name="ID" value="<?=$ItemId?>">
@@ -29,7 +41,7 @@ $ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==nu
                     <input 
                         type="text" 
                         id="<?=$arItem['CODE']?>" 
-                        name="<?=$arItem['CODE']?>"
+                        name="<?=$arItem['NAME_ATTRIBUTE']?>"
                         value="<?=$arItem['VALUE']?>"
                         <?=($arItem['ONLY_READ']) ? 'disabled' : ''?>    
                     >

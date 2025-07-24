@@ -4,7 +4,8 @@ namespace Ivankarshev\Parser\Orm;
 use Ivankarshev\Parser\Orm\LinkTargerTable;
 
 use Bitrix\Main\Entity;
-use Bitrix\Main\Entity\{IntegerField, BooleanField, FloatField, DatetimeField};
+use Bitrix\Main\Entity\{StringField, IntegerField, BooleanField, FloatField, DatetimeField};
+
 use Bitrix\Main\ORM\Fields\Relations\OneToMany;
 
 /**
@@ -24,8 +25,10 @@ class PriceTable extends Entity\DataManager
     {
         return array(
             new IntegerField('ID', array('primary' => true, 'autocomplete' => true)),
-            new IntegerField('LINK_TARGET'),
-            new BooleanField('IS_TARGET_LINK'),
+            new IntegerField('LINK_ID'),
+            (new OneToMany('LINK_MAP', LinkTargerTable::class, 'LINK_ITEMS'))->configureJoinType('inner'),
+            new StringField('LINK'),
+            new BooleanField('IS_MAIN_LINK'),
             new FloatField('PRICE', [
                 'nullable' => true
             ]),

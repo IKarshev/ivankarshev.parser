@@ -18,10 +18,25 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
-#SaveLinkForm .form-header h1 {
+#SaveLinkForm .form-header .title-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+#SaveLinkForm .form-header .title-row h1 {
   margin-top: 0;
+}
+#SaveLinkForm .form-header .title-row .htn {
+  font-size: 16px;
+  cursor: pointer;
+}
+#SaveLinkForm .form-header .title-row .htn:hover {
+  transition: 0.3s;
+  color: #b10000;
 }
 #SaveLinkForm .static-field-list {
   padding-left: 0;

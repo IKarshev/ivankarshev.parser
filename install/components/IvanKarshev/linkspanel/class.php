@@ -19,6 +19,8 @@ Loader::includeModule('ivankarshev.parser');
 class KonturPaymentProfilesComponent extends CBitrixComponent implements Controllerable{
 
     protected const GRID_LIST_ID = 'LINK_LIST_GRID';
+    protected const FIELD_PREFIX = 'IVANKARSHEV_PARSER_ORM_LINK_TARGER_LINK_ITEMS_';
+
     protected const COLUMNS = [
         [
             "id" => 'ID',
@@ -28,16 +30,16 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             'type' => 'number',
         ],
         [
-            "id" => 'LINK',
-            "name" => 'Наш товар',
-            "sort" => 'LINK',
+            "id" => 'PRODUCT_NAME',
+            "name" => 'Название товара',
+            "sort" => 'PRODUCT_NAME',
             "default" => true,
             'type' => 'string',
         ],
         [
-            "id" => 'TARGET_LINK',
-            "name" => 'Товар конкурента',
-            "sort" => 'TARGET_LINK',
+            "id" => 'LINK',
+            "name" => 'Наш товар',
+            "sort" => 'LINK',
             "default" => true,
             'type' => 'string',
         ],
@@ -138,10 +140,29 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             'sort' => ['ID' => 'DESC'], // Дефолтные сортировки для 'стандартных' свойств
         ]);
         
+        // Убираем сортировку ссылок
+        if (isset($sort['sort'])) {
+            foreach ($sort['sort'] as $arkey => $arItem) {
+                if (str_contains($arkey, 'LINK')){
+                    unset($sort['sort'][$arkey]);
+                }
+            }
+        }
+
+        /*
         // Фильтрация
         $filterOption = new Bitrix\Main\UI\Filter\Options(self::GRID_LIST_ID);
         $filterData = $filterOption->getFilter([]);
         $NormalizefilterData = $this->normalizeFilter($filterData);
+
+        // Делаем фильтр по любому полю ссылки унифицированным
+        foreach ($NormalizefilterData as $arkey => $arItem) {
+            if (str_contains($arkey, 'LINK')) {
+                unset($NormalizefilterData[$arkey]);
+                $NormalizefilterData['%'.self::FIELD_PREFIX.'LINK'] = $arItem;
+            }
+        }
+        */
 
         $nav_params = $grid_options->GetNavParams();
         $nav = new PageNavigation('request_list');
@@ -159,17 +180,46 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             'limit' => $limit,
             'order' => $sort['sort'],
             'count_total' => true,
-            'filter' => $NormalizefilterData ? $NormalizefilterData : [],
+            // 'filter' => $NormalizefilterData ? $NormalizefilterData : [],
+            // 'filter' => ['IVANKARSHEV_PARSER_ORM_LINK_TARGER_LINK_ITEMS_IS_MAIN_LINK' => true],
         ]);
         $dataRowList = $dataRequest->fetchAll();
 
+        ob_start();
         foreach($dataRowList as $row){
+            if (isset($customRowData)) {
+                unset($customRowData);
+            }
+
+            $linkData = LinkTargerTable::getList([
+                'select' => ['ID', 'LINK_' => 'LINK_ITEMS'],
+                'filter' => ['LINK_LINK_ID' => $row['ID']],
+                'order' => ['LINK_ID' => 'ASC']
+            ])->fetchAll();
+            
+            if (!empty($linkData)) {
+                foreach ($linkData as $key => $value) {
+                    $fieldName = $value['LINK_IS_MAIN_LINK'] ? 'LINK' : "LINK_$key";
+
+                    $customRowData[$fieldName] = $value['LINK_LINK'];
+                    $customColumns[$fieldName] = [
+                        "id" => $fieldName,
+                        "name" => $value['LINK_IS_MAIN_LINK'] ? 'Наша ссылка' : "Ссылка $key",
+                        "sort" => $fieldName,
+                        "default" => true,
+                        'type' => 'string',
+                    ];
+                }
+            }
+
             $rows[] = [
-                'data' => [
-                    'ID' => $row['ID'] ?? '',
-                    'LINK' => $row['LINK'] ?? '',
-                    'TARGET_LINK' => $row['TARGET_LINK'] ?? '',
-                ],
+                'data' => array_merge(
+                    [
+                        'ID' => $row['ID'] ?? '',
+                        'PRODUCT_NAME' => $row['PRODUCT_NAME'] ?? '',
+                    ],
+                    $customRowData ?? []
+                ),
                 'actions' => [
                     [
                         'text' => 'Изменить',
@@ -184,16 +234,15 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                         ]).')',
                     ],
                 ],
-                
             ];
         };
 
         $this->arResult = [
             'LIST_ID' => self::GRID_LIST_ID,
             'TOTAL_ELEMENTS' => $dataRequest->getCount(),
-            'COLUMNS' => self::COLUMNS ?? [],
+            'COLUMNS' => array_merge(self::COLUMNS, $customColumns),
             'ROWS' => $rows ?? [],
-            'FILTER_ARRAY' => self::COLUMNS,
+            'FILTER_ARRAY' => array_merge(self::COLUMNS, $customColumns),
         ];
 
         return $this->arResult;
@@ -210,49 +259,65 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
 
             if ($LinkId) {
                 $dataRequest = LinkTargerTable::getList([
-                    'select' => ['*'],
+                    'select' => ['*', 'LINK_' => 'LINK_ITEMS'],
                     'filter' => ['ID' => $LinkId],
                 ])->fetchAll();
-                
+
                 if (empty($dataRequest)) {
-                    throw new \Exception("Элемент не найден");
-                } else{
-                    $RowItem = array_shift($dataRequest);
-                }
+                    $dataRequest2 = LinkTargerTable::getList([
+                        'select' => ['*'],
+                        'filter' => ['ID' => $LinkId],
+                    ])->fetchAll();
+
+                    if (empty($dataRequest2)) {
+                        throw new \Exception("Элемент не найден");
+                    } else {
+                        $dataRequest = $dataRequest2;
+                    }
+                };
             }
 
             $arResult = [
                 [
                     'CODE' => 'ID',
+                    'NAME_ATTRIBUTE' => 'ID',
                     'NAME' => 'ID записи',
-                    'VALUE' => $RowItem['ID'] ?? '',
+                    'VALUE' => $dataRequest[0]['ID'] ?? '',
                     'ONLY_READ' => true,
                     'IS_REQUIRED' => true,
                     'MULTIPLE' => false,
                 ],
                 [
-                    'CODE' => 'LINK',
-                    'NAME' => 'Наш товар',
-                    'VALUE' => $RowItem['LINK'] ?? '',
-                    'ONLY_READ' => false,
-                    'IS_REQUIRED' => true,
-                    'MULTIPLE' => false,
-                ],
-                [
-                    'CODE' => 'TARGET_LINK',
-                    'NAME' => 'Товар конкурента',
-                    'VALUE' => $RowItem['TARGET_LINK'] ?? '',
+                    'CODE' => 'PRODUCT_NAME',
+                    'NAME_ATTRIBUTE' => 'PRODUCT_NAME',
+                    'NAME' => 'Название',
+                    'VALUE' => $dataRequest[0]['PRODUCT_NAME'] ?? '',
                     'ONLY_READ' => false,
                     'IS_REQUIRED' => true,
                     'MULTIPLE' => false,
                 ],
             ];
 
+            foreach ($dataRequest as $arkey => $arItem) {
+                if (!isset($arItem['LINK_ID'])) {
+                    continue;
+                }
+                $arResult[] = [
+                    'CODE' => 'LINK_'.$arItem['LINK_ID'],
+                    'NAME_ATTRIBUTE' => 'LINK['.$arItem['LINK_ID'].']',
+                    'NAME' => $arkey == 0 ? 'Основная ссылка' : 'Ссылка',
+                    'VALUE' => $arItem['LINK_LINK'] ?? '',
+                    'ONLY_READ' => false,
+                    'IS_REQUIRED' => true,
+                    'MULTIPLE' => false,
+                ];
+            }
+
             ob_start();
             require(\Bitrix\Main\Application::getDocumentRoot().$templateFolder.'/form.php');
             $form = ob_get_contents();
             ob_end_clean();
-    
+            
             return $form ?? '';
         } catch (\Throwable $th) {
             throw $th;
@@ -266,23 +331,53 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             $post = $request->getPostList();
 
             $itemId = $request->getPost('ID');
-            $itemLink = $request->getPost('LINK');
-            $itemTargetLink = $request->getPost('TARGET_LINK');
             $isNew = $request->getPost('is_new');
+            $productName = $request->getPost('PRODUCT_NAME');
+            $itemLink = $request->getPost('LINK');
+            $newLink = $request->getPost('NEW_LINK');
 
             if (!$itemId && $isNew) {
-                LinkTargerTable::add([
-                    'LINK' => $itemLink,
-                    'TARGET_LINK' => $itemTargetLink,
+                $NewId = LinkTargerTable::add([
+                    'PRODUCT_NAME' => $productName ?? '',
                 ]);
+                $i = 0;
+                foreach ($newLink as $newLinkItem) {
+                    PriceTable::add([
+                        'LINK_ID' => $NewId->getId(),
+                        'LINK' => $newLinkItem,
+                        'IS_MAIN_LINK' => $i === 0,
+                    ]);
+                    $i++;
+                }
             } elseif($itemId) {
                 LinkTargerTable::update(
                     $itemId,
                     [
-                        'LINK' => $itemLink,
-                        'TARGET_LINK' => $itemTargetLink,
+                        'PRODUCT_NAME' => $productName,
                     ]
                 );
+                $i = 0;
+                foreach ($itemLink as $linkId => $link) {
+                    PriceTable::update(
+                        $linkId,
+                        [
+                            'LINK' => $link,
+                            'IS_MAIN_LINK' => $i === 0,
+                        ]
+                    );
+                    $i++;
+                }
+                if (is_array($newLink) && !empty($newLink)) {
+                    $i = 0;
+                    foreach ($newLink as $newLinkItem) {
+                        PriceTable::add([
+                            'LINK_ID' => $itemId,
+                            'LINK' => $newLinkItem,
+                            'IS_MAIN_LINK' => $i === 0 && (empty($itemLink) || !isset($itemLink)),
+                        ]);
+                        $i++;
+                    }
+                }
             }
         } catch (\Throwable $th) {
             throw $th;
@@ -300,7 +395,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
 
                 $priceIdList = PriceTable::getList([
                     'select' => ['ID'],
-                    'filter' => ['LINK_TARGET' => $itemId],
+                    'filter' => ['LINK_ID' => $itemId],
                 ])->fetchAll();
                 
                 if (!empty($priceIdList)) {

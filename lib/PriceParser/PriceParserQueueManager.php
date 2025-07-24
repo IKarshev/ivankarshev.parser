@@ -12,7 +12,7 @@ class PriceParserQueueManager
 {
     public static function startFullParse(): void
     {
-        $elementList = LinkTargerTable::getList([
+        $elementList = PriceTable::getList([
             'select' => ['ID'],
         ])->fetchAll();
 
@@ -28,11 +28,11 @@ class PriceParserQueueManager
 
     public static function getParseList(int $limit = 15): array
     {
-        $elementList = ParseQueueTable::getList([
-            'select' => ['LINK_ID'],
+        $elementList = PriceTable::getList([
+            'select' => ['ID'],
             'limit' => $limit,
         ])->fetchAll();
-        return (is_array($elementList) && !empty($elementList)) ? array_column($elementList, 'LINK_ID') : [];
+        return (is_array($elementList) && !empty($elementList)) ? array_column($elementList, 'ID') : [];
     }
 
     /**
@@ -42,27 +42,22 @@ class PriceParserQueueManager
     {
         $itemListId = self::getParseList();
         if (!empty($itemListId)) {
-            $elementList = LinkTargerTable::getList([
-                'select' => ['*'],
+            $elementList = PriceTable::getList([
+                'select' => ['ID', 'LINK'],
                 'filter' => ['ID' => $itemListId],
             ])->fetchAll();
+
             if (!empty($elementList)) {
                 $parsingManager = new ParsingManager();
+
                 foreach ($elementList as $element) {
                     try {
                         $parseObjectMainLink = $parsingManager->getSiteParsingClass($element['LINK']);
                         self::setNewPrice(
                             $element['ID'],
-                            true,
                             $parseObjectMainLink->getPrice()
                         );
-        
-                        $parseobjectTargetLink = $parsingManager->getSiteParsingClass($element['TARGET_LINK']);
-                        self::setNewPrice(
-                            $element['ID'],
-                            false,
-                            $parseobjectTargetLink->getPrice()
-                        );
+                        
                     } catch (\Throwable $th) {
                         Logger::error('Ошибка при парсинге: ' . $th->getMessage(), [
                             'trace: ' . $th->getTraceAsString(),
@@ -79,30 +74,23 @@ class PriceParserQueueManager
                         }
                     }
                 }
+                
             }
         }
 
         return '\\'.__METHOD__.'();';
     }
 
-    protected static function setNewPrice(int $linkTarget, bool $isTargetLink, float $price)
+    protected static function setNewPrice(int $linkId, float $price)
     {
         $link = PriceTable::getList([
-            'select' => ['*'],
+            'select' => ['ID'],
             'filter' => [
-                '=LINK_TARGET' => $linkTarget,
-                'IS_TARGET_LINK' => $isTargetLink,
+                'ID' => $linkId,
             ],
             'limit' => 1,
         ])->fetchAll();
-        if (empty($link)) {
-            PriceTable::add([
-                'LINK_TARGET' => $linkTarget,
-                'IS_TARGET_LINK' => $isTargetLink,
-                'PRICE' => $price,
-                'UPDATE_TIMESTAMP' => new DateTime(),
-            ]);
-        } else {
+        if (!empty($link)) {
             PriceTable::update($link[0]['ID'], [
                 'PRICE' => $price,
                 'UPDATE_TIMESTAMP' => new DateTime(),
