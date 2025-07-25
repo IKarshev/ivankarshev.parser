@@ -3,6 +3,10 @@
 use Bitrix\Main\Grid\Options as GridOptions,
     Bitrix\Main\UI\PageNavigation;
 
+use Ivankarshev\Parser\Helper;
+
+\Bitrix\Main\Loader::includeModule('ivankarshev.parser');
+
 CJSCore::Init(['jquery']);
 $this->addExternalJS($templateFolder."/assets/js/jquery.validate.min.js");
 $this->addExternalJS($templateFolder."/assets/js/jqueryValidateCustomRules.js");
@@ -29,6 +33,7 @@ $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 		]);*/?>
 	</div>
 	<div class="btn-row">
+		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XLS'?>" class="ui-btn ui-btn-success">Скачать xls</a>
 		<button class="ui-btn ui-btn-primary js-new-item-popup">Добавить ссылку</button>
 	</div>
 </div>

@@ -10,6 +10,23 @@ use Ivankarshev\Parser\PriceParser\ParsingManager;
 
 class PriceParserQueueManager
 {
+    public static function addItemToQueue(int $linkId)
+    {
+        $elementList = PriceTable::getList([
+            'select' => ['ID'],
+            'filter' => ['LINK_ID' => $linkId]
+        ])->fetchAll();
+
+        if (!empty($elementList)) {
+            foreach (array_column($elementList, 'ID') as $linkId) {
+                ParseQueueTable::add([
+                    'LINK_ID' => $linkId,
+                    'ADD_TO_QUEUE_TIMESTAMP' => new DateTime(),
+                ]);
+            }
+        }
+    }
+
     public static function startFullParse(): void
     {
         $elementList = PriceTable::getList([

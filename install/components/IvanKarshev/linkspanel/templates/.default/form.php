@@ -8,16 +8,6 @@ if ( ! defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 $ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==null)
     ? $arResult[$itemKey]['VALUE']
     : null;
-
-ob_start();
-echo "ItemId: $ItemId \n";
-print_r($arResult);
-$debug = ob_get_contents();
-ob_end_clean();
-$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params2.log', 'w+');
-fwrite($fp, $debug);
-fclose($fp);
-
 ?>
 
 <form action="" id="SaveLinkForm">

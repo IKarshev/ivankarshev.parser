@@ -8,6 +8,8 @@ namespace Ivankarshev\Parser\Documents\Format;
 use Ivankarshev\Parser\Documents\GetOrderInfo;
 use Ivankarshev\Parser\Documents\DocumentsInterface;
 
+use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable};
+
 Class XLS extends GetOrderInfo implements DocumentsInterface
 {
     public function __construct(string $markupFileUrl) {
@@ -20,7 +22,7 @@ Class XLS extends GetOrderInfo implements DocumentsInterface
 
         $datetime = (new \DateTime())->format('dmY');
         $fileName = 'pricelist_'.$datetime.'.xls';
-        // self::downloadFile($output, $fileName);
+        self::downloadFile($output, $fileName);
     }
 
     public function test()
@@ -34,8 +36,27 @@ Class XLS extends GetOrderInfo implements DocumentsInterface
     private function createMarkup(){
 
         try {
+            $links = LinkTargerTable::getList([
+                'select' => ['*', 'LINK_' => 'LINK_ITEMS'],
+            ])->fetchAll();
+
+            foreach ($links as $arkey => $arItem) {
+                if ($arItem['LINK_IS_MAIN_LINK']) {
+                    $arResult['ROWS'][$arItem['ID']]['MAIN_LINK'] = $arItem;
+                } else {
+                    $arResult['ROWS'][$arItem['ID']]['TARGET_LINKS'][] = $arItem;
+                }
+            }
+
+
+            $arResult['COLUMN_COUNT'] = 0;
+            foreach ($arResult['ROWS'] as $arkey => $arItem) {
+                if (count($arItem['TARGET_LINKS']) > $arResult['COLUMN_COUNT']) {
+                    $arResult['COLUMN_COUNT'] = count($arItem['TARGET_LINKS']);
+                }
+            }
+
             ob_start();
-            $arResult = [];
             include($this->markupFileUrl);
             $markup = ob_get_contents();
             ob_end_clean();

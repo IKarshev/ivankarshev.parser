@@ -10,6 +10,7 @@ use Bitrix\Main\Loader,
     CUtil;
 
 use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable};
+use Ivankarshev\Parser\PriceParser\PriceParserQueueManager;
 
 Loader::includeModule('ivankarshev.parser');
 
@@ -240,9 +241,9 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
         $this->arResult = [
             'LIST_ID' => self::GRID_LIST_ID,
             'TOTAL_ELEMENTS' => $dataRequest->getCount(),
-            'COLUMNS' => array_merge(self::COLUMNS, $customColumns),
+            'COLUMNS' => array_merge(self::COLUMNS, $customColumns ?? []),
             'ROWS' => $rows ?? [],
-            'FILTER_ARRAY' => array_merge(self::COLUMNS, $customColumns),
+            'FILTER_ARRAY' => array_merge(self::COLUMNS, $customColumns ?? []),
         ];
 
         return $this->arResult;
@@ -342,6 +343,9 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ]);
                 $i = 0;
                 foreach ($newLink as $newLinkItem) {
+                    if (trim($newLinkItem)==='') {
+                        continue;
+                    }
                     PriceTable::add([
                         'LINK_ID' => $NewId->getId(),
                         'LINK' => $newLinkItem,
@@ -349,6 +353,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     ]);
                     $i++;
                 }
+                PriceParserQueueManager::addItemToQueue($NewId->getId());
             } elseif($itemId) {
                 LinkTargerTable::update(
                     $itemId,
@@ -358,18 +363,25 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 );
                 $i = 0;
                 foreach ($itemLink as $linkId => $link) {
-                    PriceTable::update(
-                        $linkId,
-                        [
-                            'LINK' => $link,
-                            'IS_MAIN_LINK' => $i === 0,
-                        ]
-                    );
-                    $i++;
+                    if (trim($link)!==''){
+                        PriceTable::update(
+                            $linkId,
+                            [
+                                'LINK' => $link,
+                                'IS_MAIN_LINK' => $i === 0,
+                            ]
+                        );
+                        $i++;
+                    } else {
+                        PriceTable::delete($linkId);
+                    }
                 }
                 if (is_array($newLink) && !empty($newLink)) {
                     $i = 0;
                     foreach ($newLink as $newLinkItem) {
+                        if (trim($newLinkItem)==='') {
+                            continue;
+                        };
                         PriceTable::add([
                             'LINK_ID' => $itemId,
                             'LINK' => $newLinkItem,
@@ -378,6 +390,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                         $i++;
                     }
                 }
+                PriceParserQueueManager::addItemToQueue($itemId);
             }
         } catch (\Throwable $th) {
             throw $th;
