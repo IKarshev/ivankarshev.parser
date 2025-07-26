@@ -19,6 +19,8 @@ IncludeModuleLangFile(__FILE__);
  */
 Class Ivankarshev_Parser extends CModule
 {
+    public const MODULE_ID = 'ivankarshev.parser';
+
     var $MODULE_ID = "ivankarshev.parser";
     var $MODULE_VERSION;
     var $MODULE_VERSION_DATE;
@@ -41,6 +43,7 @@ Class Ivankarshev_Parser extends CModule
         $this->InstallEvents();
         $this->InstallFiles();
         $this->InstallAgent();
+        $this->InstallMailEvents();
 
         $APPLICATION->includeAdminFile(
             "Установочное сообщение",
@@ -65,6 +68,32 @@ Class Ivankarshev_Parser extends CModule
         return true;
     }
 
+    function InstallMailEvents()
+    {
+        try {
+            (new CEventType)->Add([
+                "LID"           => 'ru',
+                "EVENT_NAME"    => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
+                "NAME"          => 'Прайслист конкурентов',
+                "DESCRIPTION"   => ''
+            ]);
+
+            (new CEventMessage)->Add([
+                "ACTIVE"      => "Y",
+                "EVENT_NAME"  => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
+                "LID"         => 's1',
+                "EMAIL_FROM"  => "#DEFAULT_EMAIL_FROM#",
+                "EMAIL_TO"    => "#DEFAULT_EMAIL_FROM#",
+                "BCC"         => "",
+                "SUBJECT"     => "Прайслист конкурентов",
+                "BODY_TYPE"   => "text",
+                "MESSAGE"     => " "
+            ]);
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+    }
+
     function InstallAgent()
     {
         \CAgent::AddAgent(
@@ -84,7 +113,23 @@ Class Ivankarshev_Parser extends CModule
             86400,
             "",
             "Y",
-            (new DateTime())->add(new \DateInterval("P1D"))->format("d.m.Y"). ' 00:00:00',
+            (new DateTime())
+                ->setTimeZone(new \DateTimeZone('Asia/Novosibirsk'))
+                ->add(new \DateInterval("P1D"))
+                ->format("d.m.Y") . ' 00:00:00',
+            30
+        );
+        \CAgent::AddAgent(
+            "\\Ivankarshev\\Parser\\PriceParser\\PriceParserQueueManager::sendPriceListEmailAgent();",
+            $this->MODULE_ID,
+            "N",
+            86400,
+            "",
+            "Y",
+            (new DateTime())
+                ->setTimeZone(new \DateTimeZone('Asia/Novosibirsk'))
+                ->add(new \DateInterval("P1D"))
+                ->format("d.m.Y") . ' 06:00:00',
             30
         );
     }
@@ -97,6 +142,10 @@ Class Ivankarshev_Parser extends CModule
         );
         \CAgent::RemoveAgent(
             "\\Ivankarshev\\Parser\\PriceParser\\PriceParserQueueManager::startFullParseAgent();", 
+            $this->MODULE_ID
+        );
+        \CAgent::RemoveAgent(
+            "\\Ivankarshev\\Parser\\PriceParser\\PriceParserQueueManager::sendPriceListEmailAgent();", 
             $this->MODULE_ID
         );
     }
@@ -143,22 +192,6 @@ Class Ivankarshev_Parser extends CModule
             'Ivankarshev\\Parser\\Main\\EventHandlers\\OnBuildGlobalMenuHandler',
             'init'
         );
-        /*
-        OrmEventManager::getInstance()->registerEventHandler(
-            LinkTargerTable::class,
-            Entity\DataManager::EVENT_ON_AFTER_ADD,
-            $this->MODULE_ID,
-            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
-            'onAfterAddHandler'
-        );
-        OrmEventManager::getInstance()->registerEventHandler(
-            LinkTargerTable::class,
-            Entity\DataManager::EVENT_ON_AFTER_UPDATE,
-            $this->MODULE_ID,
-            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
-            'onAfterUpdateHandler'
-        );
-        */
         return true;
     }
 
@@ -170,22 +203,6 @@ Class Ivankarshev_Parser extends CModule
             'Ivankarshev\\Parser\\Main\\EventHandlers\\OnBuildGlobalMenuHandler',
             'init'
         );
-        /*
-        OrmEventManager::getInstance()->unRegisterEventHandler(
-            LinkTargerTable::class,
-            Entity\DataManager::EVENT_ON_AFTER_ADD,
-            $this->MODULE_ID,
-            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
-            'onAfterAddHandler'
-        );
-        OrmEventManager::getInstance()->unRegisterEventHandler(
-            LinkTargerTable::class,
-            Entity\DataManager::EVENT_ON_AFTER_UPDATE,
-            $this->MODULE_ID,
-            'Ivankarshev\\Parser\\Orm\\LinkTargerTable',
-            'onAfterUpdateHandler'
-        );
-        */
         return true;
     }
 
