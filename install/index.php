@@ -71,24 +71,35 @@ Class Ivankarshev_Parser extends CModule
     function InstallMailEvents()
     {
         try {
-            (new CEventType)->Add([
-                "LID"           => 'ru',
-                "EVENT_NAME"    => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
-                "NAME"          => 'Прайслист конкурентов',
-                "DESCRIPTION"   => ''
-            ]);
+            if (!CEventType::GetByID(IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME, 'ru')) {
+                (new CEventType)->Add([
+                    "LID"           => 'ru',
+                    "EVENT_NAME"    => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
+                    "NAME"          => 'Прайслист конкурентов',
+                    "DESCRIPTION"   => ''
+                ]);
+            }
 
-            (new CEventMessage)->Add([
-                "ACTIVE"      => "Y",
-                "EVENT_NAME"  => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
-                "LID"         => 's1',
-                "EMAIL_FROM"  => "#DEFAULT_EMAIL_FROM#",
-                "EMAIL_TO"    => "#DEFAULT_EMAIL_FROM#",
-                "BCC"         => "",
-                "SUBJECT"     => "Прайслист конкурентов",
-                "BODY_TYPE"   => "text",
-                "MESSAGE"     => " "
-            ]);
+            $searchEvent = CEventMessage::GetList(
+                'id',
+                'desc',
+                [
+                    'TYPE_ID' => [IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME]
+                ]
+            )->Fetch();
+            if (!$searchEvent) {
+                (new CEventMessage)->Add([
+                    "ACTIVE"      => "Y",
+                    "EVENT_NAME"  => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
+                    "LID"         => 's1',
+                    "EMAIL_FROM"  => "#DEFAULT_EMAIL_FROM#",
+                    "EMAIL_TO"    => "#DEFAULT_EMAIL_FROM#",
+                    "BCC"         => "",
+                    "SUBJECT"     => "Прайслист конкурентов",
+                    "BODY_TYPE"   => "text",
+                    "MESSAGE"     => " "
+                ]);
+            }
         } catch (\Throwable $th) {
             //throw $th;
         }

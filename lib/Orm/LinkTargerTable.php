@@ -24,6 +24,7 @@ class LinkTargerTable extends Entity\DataManager
 					Join::on('this.ID', 'ref.LINK_ID')
                 ))->configureJoinType('inner'),
             new StringField('PRODUCT_NAME'),
+            new StringField('PRODUCT_CODE'),
         );
     }
 }
