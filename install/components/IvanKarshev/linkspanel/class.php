@@ -277,8 +277,22 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
 
             if ($LinkId) {
                 $dataRequest = LinkTargerTable::getList([
-                    'select' => ['*', 'LINK_' => 'LINK_ITEMS'],
+                    'select' => [
+                        '*', 
+                        'LINK_' => 'LINK_ITEMS',
+                        'COMPETITOR_ID' => 'COMPETITOR.ID',
+                        'COMPETITOR_NAME' => 'COMPETITOR.NAME',
+                    ],
                     'filter' => ['ID' => $LinkId],
+                    'runtime' => [
+                        'COMPETITOR' => [
+                            'data_type' => CompetitorTable::class,
+                            'reference' => [
+                                '=this.LINK_COMPETITOR_ID' => 'ref.ID',
+                            ],
+                            ['join_type' => 'LEFT']
+                        ],
+                    ]
                 ])->fetchAll();
 
                 if (empty($dataRequest)) {
@@ -294,7 +308,6 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     }
                 };
             }
-
 
             $rsSection = \Bitrix\Iblock\SectionTable::getList([
                 'order' => ['LEFT_MARGIN' => 'ASC'], // Важно для правильного порядка дерева
@@ -329,15 +342,6 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     'DEPTH_LEVEL' => $section['DEPTH_LEVEL'],
                 ];
             }
-
-            ob_start();
-            print_r($SectionOptions);
-            $debug = ob_get_contents();
-            ob_end_clean();
-            $fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params.log', 'w+');
-            fwrite($fp, $debug);
-            fclose($fp);
-
 
             $arResult = [
                 [
@@ -383,6 +387,14 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ],
             ];
 
+            ob_start();
+            print_r($dataRequest);
+            $debug = ob_get_contents();
+            ob_end_clean();
+            $fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params2.log', 'w+');
+            fwrite($fp, $debug);
+            fclose($fp);
+
             foreach ($dataRequest as $arkey => $arItem) {
                 if (!isset($arItem['LINK_ID'])) {
                     continue;
@@ -390,8 +402,9 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 $arResult[] = [
                     'CODE' => 'LINK_'.$arItem['LINK_ID'],
                     'NAME_ATTRIBUTE' => 'LINK['.$arItem['LINK_ID'].']',
-                    'NAME' => $arkey == 0 ? 'Основная ссылка' : 'Ссылка',
+                    'NAME' => $arItem['COMPETITOR_NAME'] ?? '',
                     'VALUE' => $arItem['LINK_LINK'] ?? '',
+                    'TYPE' => 'string',
                     'ONLY_READ' => false,
                     'IS_REQUIRED' => true,
                     'MULTIPLE' => false,

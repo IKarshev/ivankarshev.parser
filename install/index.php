@@ -8,7 +8,7 @@ use Bitrix\Main\Localization\Loc,
 use DateTime;
 use Bitrix\Main\Entity;
 
-use Ivankarshev\Parser\Orm\{LinkTargerTable, ParseQueueTable, PriceTable};
+use Ivankarshev\Parser\Orm\{LinkTargerTable, ParseQueueTable, PriceTable, CompetitorTable};
 
 Loader::includeModule('sale');
 
@@ -172,6 +172,9 @@ Class Ivankarshev_Parser extends CModule
         if (!Application::getConnection()->isTableExists(PriceTable::getTableName())) {
             PriceTable::getEntity()->createDbTable();
         };
+        if (!Application::getConnection()->isTableExists(CompetitorTable::getTableName())) {
+            CompetitorTable::getEntity()->createDbTable();
+        };
 
         return true;
     }
@@ -190,6 +193,9 @@ Class Ivankarshev_Parser extends CModule
         }
         if (Application::getConnection()->isTableExists(PriceTable::getTableName())) {
             Application::getConnection()->dropTable(PriceTable::getTableName());
+        }
+        if (Application::getConnection()->isTableExists(CompetitorTable::getTableName())) {
+            Application::getConnection()->dropTable(CompetitorTable::getTableName());
         }
         
         return true;
