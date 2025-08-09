@@ -18,19 +18,22 @@
                         <div class="head">Название</div>
                     </td>
                     <td style="padding:0 4px;border-right: 1pt solid #000000;">
-                        <div class="head">Наш сайт</div>
+                        <div class="head">Код товара</div>
+                    </td>
+                    <td style="padding:0 4px;border-right: 1pt solid #000000;">
+                        <div class="head">HMRU - Основная ссылка</div>
                     </td>
                     <td style="padding:0 4px;border-right: 1pt solid #000000;">
                         <div class="head"></div>
                     </td>
-                    <?for ($i=0; $i < $arResult['COLUMN_COUNT']; $i++):?>
+                    <?foreach ($arResult['COLUMNS'] as $column):?>
                         <td style="padding:0 4px;border-right: 1pt solid #000000;">
-                            <div class="head">Конкурент <?=$i+1?></div>
+                            <div class="head"><?=$column?></div>
                         </td>
                         <td style="padding:0 4px;border-right: 1pt solid #000000;">
                             <div class="head"></div>
                         </td>
-                    <?endfor;?>
+                    <?endforeach;?>
                 </tr>
             </thead>
             <tbody>
@@ -38,6 +41,9 @@
                     <tr style="border-bottom: 1pt solid #000000;">
                         <td style="padding:0 4px;border-right: 1pt solid #000000;">
                             <div class="item"><?=$arItem['MAIN_LINK']['PRODUCT_NAME']?></div>
+                        </td>
+                        <td style="padding:0 4px;border-right: 1pt solid #000000;">
+                            <div class="item"><?=$arItem['MAIN_LINK']['PRODUCT_CODE']?></div>
                         </td>
                         <td style="padding:0 4px;border-right: 1pt solid #000000;">
                             <div class="item"><?=$arItem['MAIN_LINK']['LINK_LINK']?></div>
