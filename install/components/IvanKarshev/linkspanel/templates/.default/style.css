@@ -82,7 +82,7 @@
   line-height: 145%;
   margin-bottom: 5px;
 }
-#SaveLinkForm .field-list .input_cont input {
+#SaveLinkForm .field-list .input_cont input, #SaveLinkForm .field-list .input_cont select {
   padding: 16px 16px;
   outline: none;
   background: #FFFFFF;
@@ -94,23 +94,46 @@
   line-height: 145%;
   color: #343434;
 }
-#SaveLinkForm .field-list .input_cont input.error {
+#SaveLinkForm .field-list .input_cont input.error, #SaveLinkForm .field-list .input_cont select.error {
   border-color: #D90000;
   color: #D90000;
 }
-#SaveLinkForm .field-list .input_cont input::-moz-placeholder {
+#SaveLinkForm .field-list .input_cont input::-moz-placeholder, #SaveLinkForm .field-list .input_cont select::-moz-placeholder {
   color: inherit;
 }
-#SaveLinkForm .field-list .input_cont input::placeholder {
+#SaveLinkForm .field-list .input_cont input::placeholder, #SaveLinkForm .field-list .input_cont select::placeholder {
   color: inherit;
 }
-#SaveLinkForm .field-list .input_cont input:-moz-read-only {
+#SaveLinkForm .field-list .input_cont input :-moz-read-only {
   opacity: 0.5;
   cursor: no-drop;
 }
-#SaveLinkForm .field-list .input_cont input:read-only {
+#SaveLinkForm .field-list .input_cont input :read-only {
   opacity: 0.5;
   cursor: no-drop;
+}
+#SaveLinkForm .field-list .input_cont select {
+  -webkit-appearance: none;
+  width: 100%;
+  padding-right: 36px;
+  margin: 0;
+  border: 0;
+}
+#SaveLinkForm .field-list .input_cont .select-container {
+  position: relative;
+}
+#SaveLinkForm .field-list .input_cont .select-container::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-image: url(./assets/img/drow-down.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 #SaveLinkForm .error_placement {
   display: flex;

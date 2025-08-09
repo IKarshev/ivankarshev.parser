@@ -9,6 +9,7 @@ use Bitrix\Main\Loader,
     Bitrix\Main\UI\PageNavigation,
     CUtil;
 
+use Ivankarshev\Parser\Options\OptionManager;
 use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable, CompetitorTable};
 use Ivankarshev\Parser\PriceParser\PriceParserQueueManager;
 
@@ -46,9 +47,9 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             'type' => 'string',
         ],
         [
-            "id" => 'SECTION_LINK',
+            "id" => 'SECTION_ID',
             "name" => 'Привязка к разделу',
-            "sort" => 'SECTION_LINK',
+            "sort" => 'SECTION_ID',
             "default" => true,
             'type' => 'select',
         ],
@@ -202,13 +203,17 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
         $dataRowList = $dataRequest->fetchAll();
 
         foreach($dataRowList as $row){
-            if (isset($customRowData)) {
-                unset($customRowData);
+            // Затираем переменные с предыдущей итерации
+            foreach (['customRowData', 'section'] as $varName) {
+                if (isset($$varName)) {
+                    unset($$varName);
+                }
             }
 
             $linkData = LinkTargerTable::getList([
                 'select' => [
                     'ID',
+                    'SECTION_ID',
                     'LINK_' => 'LINK_ITEMS',
                     'COMPETITOR_ID' => 'COMPETITOR.ID',
                     'COMPETITOR_NAME' => 'COMPETITOR.NAME',
@@ -226,7 +231,6 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ]
             ])->fetchAll();
 
-
             if (!empty($linkData)) {
                 foreach ($linkData as $key => $value) {
                     $fieldName = $value['LINK_IS_MAIN_LINK'] ? 'LINK' : "LINK_$key";
@@ -242,13 +246,26 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 }
             }
 
+            if ($sectionIblockId = (new OptionManager())->getOption('SECTION_IBLOCK_ID')) {
+                $section = \Bitrix\Iblock\SectionTable::getList([
+                    'filter' => [
+                        'ID' => $linkData[0]['SECTION_ID'],
+                        'IBLOCK_ID' => $sectionIblockId->getValue()
+                    ],
+                    'select' => ['ID', 'NAME'],
+                    'limit' => 1,
+                ])->fetch();
+            }
+
             $rows[] = [
                 'data' => array_merge(
                     [
                         'ID' => $row['ID'] ?? '',
                         'PRODUCT_NAME' => $row['PRODUCT_NAME'] ?? '',
                         'PRODUCT_CODE' => $row['PRODUCT_CODE'] ?? '',
-                        'SECTION_LINK' => $row['SECTION_LINK'] ?? '',
+                        'SECTION_ID' => $section
+                            ? '['.$section['ID'].'] '.$section['NAME']
+                            : '',
                     ],
                     $customRowData ?? []
                 ),
@@ -309,22 +326,24 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ])->fetchAll();
             }
 
-            $rsSection = \Bitrix\Iblock\SectionTable::getList([
-                'order' => ['LEFT_MARGIN' => 'ASC'], // Важно для правильного порядка дерева
-                'filter' => [
-                    'IBLOCK_ID' => 4,
-                    'ACTIVE' => 'Y', // если нужно только активные
-                ],
-                'select' => [
-                    'ID', 
-                    'CODE',
-                    'NAME', 
-                    'DEPTH_LEVEL',
-                    'IBLOCK_SECTION_ID', // ID родительского раздела
-                    'LEFT_MARGIN',
-                    'RIGHT_MARGIN',
-                ],
-            ])->fetchAll();
+            if ($sectionIblockId = (new OptionManager())->getOption('SECTION_IBLOCK_ID')) {
+                $rsSection = \Bitrix\Iblock\SectionTable::getList([
+                    'order' => ['LEFT_MARGIN' => 'ASC'], // Важно для правильного порядка дерева
+                    'filter' => [
+                        'IBLOCK_ID' => $sectionIblockId->getValue(),
+                        'ACTIVE' => 'Y', // если нужно только активные
+                    ],
+                    'select' => [
+                        'ID', 
+                        'CODE',
+                        'NAME', 
+                        'DEPTH_LEVEL',
+                        'IBLOCK_SECTION_ID', // ID родительского раздела
+                        'LEFT_MARGIN',
+                        'RIGHT_MARGIN',
+                    ],
+                ])->fetchAll();
+            }
 
             foreach ($rsSection as $section) {
                 $displayName = '';
@@ -375,10 +394,10 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     'MULTIPLE' => false,
                 ],
                 [
-                    'CODE' => 'SECTION_LINK',
-                    'NAME_ATTRIBUTE' => 'SECTION_LINK',
+                    'CODE' => 'SECTION_ID',
+                    'NAME_ATTRIBUTE' => 'SECTION_ID',
                     'NAME' => 'Привязка к разделу',
-                    'VALUE' => $dataRequest[0]['SECTION_LINK'] ?? '',
+                    'VALUE' => $dataRequest[0]['SECTION_ID'] ?? '',
                     'OPTIONS' => $SectionOptions,
                     'TYPE' => 'select',
                     'ONLY_READ' => false,
@@ -410,6 +429,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ];
             };
 
+            // Добавляем сайты
             $arResult[] =  $siteData('hmru.ru');
             $arResult[] =  $siteData('hurakan-russia.ru');
 
@@ -428,12 +448,13 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
     {
         try {
             $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
-            $post = $request->getPostList();
+            // $post = $request->getPostList();
 
             $itemId = $request->getPost('ID');
             $isNew = $request->getPost('is_new');
             $productName = $request->getPost('PRODUCT_NAME');
             $productCode = $request->getPost('PRODUCT_CODE');
+            $sectionId = $request->getPost('SECTION_ID');
             $itemLink = $request->getPost('LINK');
             $newLink = $request->getPost('NEW_LINK');
 
@@ -452,6 +473,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 $NewId = LinkTargerTable::add([
                     'PRODUCT_NAME' => $productName ?? '',
                     'PRODUCT_CODE' => $productCode ?? '',
+                    'SECTION_ID' => $sectionId ?? '',
                 ]);
                 $i = 0;
                 foreach ($newLink as $competitorName => $newLinkItem) {
@@ -475,6 +497,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     [
                         'PRODUCT_NAME' => $productName,
                         'PRODUCT_CODE' => $productCode,
+                        'SECTION_ID' => $sectionId,
                     ]
                 );
                 $i = 0;

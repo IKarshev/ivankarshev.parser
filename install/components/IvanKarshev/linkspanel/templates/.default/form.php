@@ -8,14 +8,6 @@ if ( ! defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 $ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==null)
     ? $arResult[$itemKey]['VALUE']
     : null;
-
-ob_start();
-print_r($arResult);
-$debug = ob_get_contents();
-ob_end_clean();
-$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params2.log', 'w+');
-fwrite($fp, $debug);
-fclose($fp);
 ?>
 
 <form action="" id="SaveLinkForm">
@@ -47,11 +39,15 @@ fclose($fp);
                     case 'select':?>
                         <div class="input_cont">
                             <label for="<?=$arItem['CODE']?>"><?=$arItem['NAME']?></label>
-                            <select name="<?=$arItem['NAME_ATTRIBUTE']?>" id="<?=$arItem['CODE']?>">
-                                <?foreach ($arItem['OPTIONS'] as $option):?>
-                                    <option value="<?=$option['ID']?>"><?=$option['DISPLAY_NAME']?></option>
-                                <?endforeach;?>
-                            </select>
+                            <div class="select-container">
+                                <select name="<?=$arItem['NAME_ATTRIBUTE']?>" id="<?=$arItem['CODE']?>">
+                                    <?foreach ($arItem['OPTIONS'] as $option):?>
+                                        <option value="<?=$option['ID']?>" <?=$option['ID'] == $arItem['VALUE'] ? 'selected' : ''?>>
+                                            <?=$option['DISPLAY_NAME']?>
+                                        </option>
+                                    <?endforeach;?>
+                                </select>
+                            </div>
                         </div>
                         <?break;
                 }?>

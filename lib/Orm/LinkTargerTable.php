@@ -25,6 +25,7 @@ class LinkTargerTable extends Entity\DataManager
                 ))->configureJoinType('inner'),
             new StringField('PRODUCT_NAME'),
             new StringField('PRODUCT_CODE'),
+            new IntegerField('SECTION_ID'),
         );
     }
 }
