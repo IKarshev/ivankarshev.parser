@@ -13,17 +13,14 @@ ob_start();
 print_r($arResult);
 $debug = ob_get_contents();
 ob_end_clean();
-$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params.log', 'w+');
+$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params2.log', 'w+');
 fwrite($fp, $debug);
 fclose($fp);
 ?>
 
 <form action="" id="SaveLinkForm">
     <div class="form-header">
-        <div class="title-row">
-            <h1><?=$isNewItem ? "Новый элемент" : "Редактирование ссылки №$ItemId"?></h1>
-            <div class="htn js-add-link">Добавить ссылку</div>
-        </div>
+        <h1><?=$isNewItem ? "Новый элемент" : "Редактирование ссылки №$ItemId"?></h1>
         <div class="field-list">
             <?if($ItemId!==null && !$isNewItem):?>
                 <input type="hidden" name="ID" value="<?=$ItemId?>">

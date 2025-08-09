@@ -70,15 +70,4 @@ $(function(){
 
         editLinkData({'ID': null});
     })
-
-    $('body').on('click', '.js-add-link', function(event){
-        event.preventDefault();
-
-        $('.field-list').append(`
-            <div class="input_cont">
-                <label>Ссылка</label>
-                <input type="text" id="NEW_LINK" name=NEW_LINK[]" value="" >
-            </div>
-        `);
-    })
 })
