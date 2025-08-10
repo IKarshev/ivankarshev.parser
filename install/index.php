@@ -8,7 +8,7 @@ use Bitrix\Main\Localization\Loc,
 use DateTime;
 use Bitrix\Main\Entity;
 
-use Ivankarshev\Parser\Orm\{LinkTargerTable, ParseQueueTable, PriceTable};
+use Ivankarshev\Parser\Orm\{LinkTargerTable, ParseQueueTable, PriceTable, CompetitorTable};
 
 Loader::includeModule('sale');
 
@@ -71,24 +71,35 @@ Class Ivankarshev_Parser extends CModule
     function InstallMailEvents()
     {
         try {
-            (new CEventType)->Add([
-                "LID"           => 'ru',
-                "EVENT_NAME"    => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
-                "NAME"          => 'Прайслист конкурентов',
-                "DESCRIPTION"   => ''
-            ]);
+            if (!CEventType::GetByID(IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME, 'ru')) {
+                (new CEventType)->Add([
+                    "LID"           => 'ru',
+                    "EVENT_NAME"    => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
+                    "NAME"          => 'Прайслист конкурентов',
+                    "DESCRIPTION"   => ''
+                ]);
+            }
 
-            (new CEventMessage)->Add([
-                "ACTIVE"      => "Y",
-                "EVENT_NAME"  => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
-                "LID"         => 's1',
-                "EMAIL_FROM"  => "#DEFAULT_EMAIL_FROM#",
-                "EMAIL_TO"    => "#DEFAULT_EMAIL_FROM#",
-                "BCC"         => "",
-                "SUBJECT"     => "Прайслист конкурентов",
-                "BODY_TYPE"   => "text",
-                "MESSAGE"     => " "
-            ]);
+            $searchEvent = CEventMessage::GetList(
+                'id',
+                'desc',
+                [
+                    'TYPE_ID' => [IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME]
+                ]
+            )->Fetch();
+            if (!$searchEvent) {
+                (new CEventMessage)->Add([
+                    "ACTIVE"      => "Y",
+                    "EVENT_NAME"  => IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
+                    "LID"         => 's1',
+                    "EMAIL_FROM"  => "#DEFAULT_EMAIL_FROM#",
+                    "EMAIL_TO"    => "#DEFAULT_EMAIL_FROM#",
+                    "BCC"         => "",
+                    "SUBJECT"     => "Прайслист конкурентов",
+                    "BODY_TYPE"   => "text",
+                    "MESSAGE"     => " "
+                ]);
+            }
         } catch (\Throwable $th) {
             //throw $th;
         }
@@ -161,6 +172,13 @@ Class Ivankarshev_Parser extends CModule
         if (!Application::getConnection()->isTableExists(PriceTable::getTableName())) {
             PriceTable::getEntity()->createDbTable();
         };
+        if (!Application::getConnection()->isTableExists(CompetitorTable::getTableName())) {
+            CompetitorTable::getEntity()->createDbTable();
+        };
+
+        // Добавляем конкурентов в БД
+        CompetitorTable::add(['NAME' => 'hmru.ru']);
+        CompetitorTable::add(['NAME' => 'hurakan-russia.ru']);
 
         return true;
     }
@@ -179,6 +197,9 @@ Class Ivankarshev_Parser extends CModule
         }
         if (Application::getConnection()->isTableExists(PriceTable::getTableName())) {
             Application::getConnection()->dropTable(PriceTable::getTableName());
+        }
+        if (Application::getConnection()->isTableExists(CompetitorTable::getTableName())) {
+            Application::getConnection()->dropTable(CompetitorTable::getTableName());
         }
         
         return true;

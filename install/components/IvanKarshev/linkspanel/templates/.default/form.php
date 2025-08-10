@@ -12,10 +12,7 @@ $ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==nu
 
 <form action="" id="SaveLinkForm">
     <div class="form-header">
-        <div class="title-row">
-            <h1><?=$isNewItem ? "Новый элемент" : "Редактирование ссылки №$ItemId"?></h1>
-            <div class="htn js-add-link">Добавить ссылку</div>
-        </div>
+        <h1><?=$isNewItem ? "Новый элемент" : "Редактирование ссылки №$ItemId"?></h1>
         <div class="field-list">
             <?if($ItemId!==null && !$isNewItem):?>
                 <input type="hidden" name="ID" value="<?=$ItemId?>">
@@ -26,16 +23,35 @@ $ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==nu
                 if ($arItem['CODE']=='ID') {
                     continue;
                 }?>
-                <div class="input_cont">
-                    <label for="<?=$arItem['CODE']?>"><?=$arItem['NAME']?></label>
-                    <input 
-                        type="text" 
-                        id="<?=$arItem['CODE']?>" 
-                        name="<?=$arItem['NAME_ATTRIBUTE']?>"
-                        value="<?=$arItem['VALUE']?>"
-                        <?=($arItem['ONLY_READ']) ? 'disabled' : ''?>    
-                    >
-                </div>
+                <?switch ($arItem['TYPE']) {
+                    case 'string':?>
+                        <div class="input_cont">
+                            <label for="<?=$arItem['CODE']?>"><?=$arItem['NAME']?></label>
+                            <input 
+                                type="text" 
+                                id="<?=$arItem['CODE']?>" 
+                                name="<?=$arItem['NAME_ATTRIBUTE']?>"
+                                value="<?=$arItem['VALUE']?>"
+                                <?=($arItem['ONLY_READ']) ? 'disabled' : ''?>    
+                            >
+                        </div>
+                        <?break;
+                    case 'select':?>
+                        <div class="input_cont">
+                            <label for="<?=$arItem['CODE']?>"><?=$arItem['NAME']?></label>
+                            <div class="select-container">
+                                <select name="<?=$arItem['NAME_ATTRIBUTE']?>" id="<?=$arItem['CODE']?>">
+                                    <?foreach ($arItem['OPTIONS'] as $option):?>
+                                        <option value="<?=$option['ID']?>" <?=$option['ID'] == $arItem['VALUE'] ? 'selected' : ''?>>
+                                            <?=$option['DISPLAY_NAME']?>
+                                        </option>
+                                    <?endforeach;?>
+                                </select>
+                            </div>
+                        </div>
+                        <?break;
+                }?>
+
             <?endforeach;?>
         </div>
     </div>

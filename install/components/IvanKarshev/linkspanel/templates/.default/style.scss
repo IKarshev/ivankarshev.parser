@@ -80,7 +80,7 @@
                 line-height: 145%;
                 margin-bottom: 5px;
             }
-            input{
+            input, select{
                 padding: 16px 16px;
                 outline: none;
                 background: #FFFFFF;
@@ -98,9 +98,32 @@
                 &::placeholder{
                     color: inherit;       
                 }
-                &:read-only{
-                    opacity: .5;
-                    cursor: no-drop;
+            }
+            input :read-only{
+                opacity: .5;
+                cursor: no-drop;
+            }
+            select{
+                -webkit-appearance: none;
+                width: 100%;
+                padding-right: 36px;
+                margin: 0;
+                border: 0;
+            }
+            .select-container{
+                position: relative;
+                &::after{
+                    content: '';
+                    width: 16px;
+                    height: 16px;
+                    position: absolute;
+                    right: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background-image: url(./assets/img/drow-down.svg);
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    background-size: contain;
                 }
             }
         }

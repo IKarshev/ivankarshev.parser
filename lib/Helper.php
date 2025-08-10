@@ -55,5 +55,60 @@ Class Helper
             return "local";
         };
     }
+
+    public static function getSectionList($filter, $select)
+    {
+        $result = array();
+        $sectionMap = array(); // Для быстрого доступа к разделам по ID
+        
+        // Получаем все разделы в правильном порядке
+        $dbSection = \CIBlockSection::GetList(
+            array('LEFT_MARGIN' => 'ASC'),
+            array_merge(
+                array(
+                    'ACTIVE' => 'Y',
+                    'GLOBAL_ACTIVE' => 'Y'
+                ),
+                is_array($filter) ? $filter : array()
+            ),
+            false,
+            array_merge(
+                array(
+                    'ID',
+                    'IBLOCK_SECTION_ID',
+                    'NAME',
+                    'DEPTH_LEVEL'
+                ),
+                is_array($select) ? $select : array()
+            )
+        );
+        
+        // Сначала собираем все разделы в массив
+        while ($arSection = $dbSection->GetNext(true, false)) {
+            $sectionMap[$arSection['ID']] = $arSection;
+            $result[] = &$sectionMap[$arSection['ID']];
+        }
+        
+        // Затем для каждого раздела строим хлебные крошки
+        foreach ($result as &$section) {
+            $breadcrumbs = array();
+            $parentId = $section['IBLOCK_SECTION_ID'];
+            
+            // Идём вверх по иерархии, пока не дойдём до корня
+            while ($parentId > 0 && isset($sectionMap[$parentId])) {
+                array_unshift($breadcrumbs, $sectionMap[$parentId]['NAME']);
+                $parentId = $sectionMap[$parentId]['IBLOCK_SECTION_ID'];
+            }
+            
+            $section['BREADCRUMBS'] = $breadcrumbs;
+            $section['BREADCRUMBS_STRING'] = implode(' / ', $breadcrumbs);
+            $section['FULL_NAME'] = !empty($breadcrumbs) 
+                ? implode(' / ', $breadcrumbs) . ' / ' . $section['NAME'] 
+                : $section['NAME'];
+        }
+        unset($section); // Разрываем ссылку
+        
+        return $result;
+    }
 }
 ?>

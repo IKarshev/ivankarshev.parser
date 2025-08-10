@@ -51,8 +51,7 @@ if ( $request->isPost() ){
 
 // Получаем текущие настройки
 $currentOptions = [
-    'IBLOCK_ID' => (($IblockIdOption = $OptionManager->getOption('IBLOCK_ID')) !== null ) ? $IblockIdOption->getValue() : '',
-    'OFFERS_IBLOCK_ID' => (($OffersIblockIdOption = $OptionManager->getOption('OFFERS_IBLOCK_ID')) !== null) ? $OffersIblockIdOption->getValue() : '',
+    'SECTION_IBLOCK_ID' => (($IblockIdOption = $OptionManager->getOption('SECTION_IBLOCK_ID')) !== null ) ? $IblockIdOption->getValue() : '',
 ];
 
 // Инфоблок
@@ -60,31 +59,7 @@ $infoblock = \Bitrix\Iblock\IblockTable::getList( [
     'select' => ['ID', 'NAME'],
 ]);
 while ($row = $infoblock->fetch()) {
-    $IBLOCK_ID_option[$row['ID']] = $OFFERS_IBLOCK_ID_option[$row['ID']] = "[".$row['ID']."] ".$row['NAME'];
-}
-
-// Свойства каталога
-$rsProperty = \Bitrix\Iblock\PropertyTable::getList(array(
-    'filter' => array('IBLOCK_ID'=>$currentOptions['IBLOCK_ID'],'ACTIVE'=>'Y'),
-));
-while($arProperty=$rsProperty->fetch()){
-    $REQUISITES_PROPERTY_CODE_option[$arProperty['CODE']] = $CALCULATE_SALE_IBLOCK_PROP_option[$arProperty['CODE']] = "[".$arProperty['CODE']."] ".$arProperty["NAME"];
-};
-
-// Свойства каталога
-$rsProperty = \Bitrix\Iblock\PropertyTable::getList(array(
-    'filter' => array('IBLOCK_ID'=>$currentOptions['OFFERS_IBLOCK_ID'],'ACTIVE'=>'Y'),
-));
-while($arProperty=$rsProperty->fetch()){
-    $REQUISITES_OFFERS_PROPERTY_CODE_option[$arProperty['CODE']] = $CALCULATE_SALE_OFFERS_IBLOCK_PROP_option[$arProperty['CODE']] = "[".$arProperty['CODE']."] ".$arProperty["NAME"];
-};
-
-// Разделы без привязки
-if( isset($currentOptions['IBLOCK_ID']) && !empty($currentOptions['IBLOCK_ID']) ){
-    foreach (SectionLink::GetIblockSection($currentOptions['IBLOCK_ID']) as $arItem) {
-        $prepend = str_repeat('_', $arItem['DEPTH_LEVEL']);
-        $SECTION_LINK_SELECTED_SECTIONS_option[$arItem['ID']] = '['.$arItem['ID'].'] '.$prepend.$arItem['NAME'];
-    }
+    $SECTION_IBLOCK_ID_option[$row['ID']] = $OFFERS_IBLOCK_ID_option[$row['ID']] = "[".$row['ID']."] ".$row['NAME'];
 }
 
 // Заполняем варианты для selectbox, multiselectbox

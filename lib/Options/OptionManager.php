@@ -97,7 +97,7 @@ final Class OptionManager
     {
         $SettingsList = [];
         // Получаем кастомные свойства из события
-        foreach(GetModuleEvents(KONTUR_TOOLS_MODULE_FUNCTIONS, 'OnCreateBaseSettingsList', true) as $arEvent){
+        foreach(GetModuleEvents(IVAN_KARSHEV_PARSER_MODULE_FUNCTIONS, 'OnCreateBaseSettingsList', true) as $arEvent){
             ExecuteModuleEventEx($arEvent, array(&$SettingsList));
         }
 
@@ -157,7 +157,7 @@ final Class OptionManager
                     '#CODE#' => $optionValue['CODE'],
                 ]));
 
-                $className = "Kontur\\Tools\\Options\\OptionsType\\OptionType". ucfirst($optionValue['TYPE']);
+                $className = "Ivankarshev\\Parser\\Options\\OptionsType\\OptionType". ucfirst($optionValue['TYPE']);
                 $result[] = new $className($optionValue['CODE'], $optionValue['VALUE'], $optionValue['IS_REQUIRED'], $optionValue['IS_MULTIPLE']);
             } catch (\Throwable $th) {
                 Logger::notice($th->getMessage());
@@ -180,7 +180,7 @@ final Class OptionManager
     private function createOptionObject(string $code, string $type, $value, bool $isRequired = false, bool $isMultiple = false): OptionTypeInterface
     {
         try {
-            $className = "Kontur\\Tools\\Options\\OptionsType\\OptionType" . ucfirst($type);
+            $className = "Ivankarshev\\Parser\\Options\\OptionsType\\OptionType" . ucfirst($type);
             return new $className($code, $value, $isRequired, $isMultiple);
         } catch (\Throwable $th) {
             throw $th;
