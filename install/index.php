@@ -180,6 +180,7 @@ Class Ivankarshev_Parser extends CModule
         CompetitorTable::add(['NAME' => 'hmru.ru']);
         CompetitorTable::add(['NAME' => 'hurakan-russia.ru']);
         CompetitorTable::add(['NAME' => 'magikon.ru']);
+        CompetitorTable::add(['NAME' => 'kdm-trading.ru']);
 
         return true;
     }
