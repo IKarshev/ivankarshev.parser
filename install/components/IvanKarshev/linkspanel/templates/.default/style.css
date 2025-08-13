@@ -21,6 +21,11 @@
   margin-bottom: 20px;
 }
 
+#popup-window-content-EditProfileContainer {
+  max-height: calc(100vh - 150px);
+  overflow-y: scroll;
+}
+
 #SaveLinkForm .form-header .title-row {
   display: flex;
   flex-direction: row;

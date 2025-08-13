@@ -179,6 +179,7 @@ Class Ivankarshev_Parser extends CModule
         // Добавляем конкурентов в БД
         CompetitorTable::add(['NAME' => 'hmru.ru']);
         CompetitorTable::add(['NAME' => 'hurakan-russia.ru']);
+        CompetitorTable::add(['NAME' => 'magikon.ru']);
 
         return true;
     }
