@@ -45,11 +45,14 @@ class PriceParserQueueManager
 
     public static function getParseList(int $limit = 15): array
     {
-        $elementList = PriceTable::getList([
-            'select' => ['ID'],
+        $elementList = ParseQueueTable::getList([
+            'select' => ['ID', 'LINK_ID'],
             'limit' => $limit,
         ])->fetchAll();
-        return (is_array($elementList) && !empty($elementList)) ? array_column($elementList, 'ID') : [];
+        
+        return (is_array($elementList) && !empty($elementList)) 
+            ? array_column($elementList, 'LINK_ID') 
+            : [];
     }
 
     /**

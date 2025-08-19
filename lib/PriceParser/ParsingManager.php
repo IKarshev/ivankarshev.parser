@@ -14,11 +14,16 @@ class ParsingManager
 
     protected function getParseClass(string $url): ?string
     {
-        $domain = self::getSiteDomain($url);
-        $domain = str_replace([' ', '-', '_'], '', $domain);
-        $domain = ucfirst(strtolower($domain));
-        $class = "\\Ivankarshev\\Parser\\PriceParser\\SiteParseHandlers\\Site".$domain."ParseHandler";
-        if (class_exists($class)) {
+        $domain = self::getSiteDomain($url);        
+        $parserClass = function(string $domain): string {
+            $className = str_replace([' ', '-', '_'], '', $domain);
+            $className = ucfirst(strtolower($className));
+            return "\\Ivankarshev\\Parser\\PriceParser\\SiteParseHandlers\\Site".$className."ParseHandler";
+        };
+
+        if (class_exists($class = $parserClass($domain))) {
+            return $class;
+        } elseif(class_exists($class = $parserClass(Helper::translit($domain)))) {
             return $class;
         } else {
             return null;

@@ -447,6 +447,15 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             $arResult[] =  $siteData('magikon.ru');
             $arResult[] =  $siteData('kdm-trading.ru');
             $arResult[] =  $siteData('voltekgroup.com');
+            // $arResult[] =  $siteData('hurakan.ru');
+            // $arResult[] =  $siteData('fartov.com');
+            $arResult[] =  $siteData('bronko.ru');
+            $arResult[] =  $siteData('агрозавод.рф');
+            // $arResult[] =  $siteData('airhot.ru');
+            $arResult[] =  $siteData('assum.ru');
+            // $arResult[] =  $siteData('7pack.pro');
+            $arResult[] =  $siteData('p-z-o.com');
+            // $arResult[] =  $siteData('bristolgroup.ru');
 
             ob_start();
             require(\Bitrix\Main\Application::getDocumentRoot().$templateFolder.'/form.php');

@@ -182,7 +182,16 @@ Class Ivankarshev_Parser extends CModule
         CompetitorTable::add(['NAME' => 'magikon.ru']);
         CompetitorTable::add(['NAME' => 'kdm-trading.ru']);
         CompetitorTable::add(['NAME' => 'voltekgroup.com']);
-
+        // CompetitorTable::add(['NAME' => 'hurakan.ru']); // не нашел ценников (((
+        // CompetitorTable::add(['NAME' => 'fartov.com']); // Вообще по тз адрес fartov.org, но там нет ценников. Уже сделал на fartov.com но пока убираю
+        CompetitorTable::add(['NAME' => 'bronko.ru']); // Тут есть доллары, сделал парсер, но тянет доллары как рубли. (пока не будут добавлять товары с долларами)
+        CompetitorTable::add(['NAME' => 'агрозавод.рф']);
+        // CompetitorTable::add(['NAME' => 'airhot.ru']); // Тут все в У.Е. (видимо доллары), пока не делаю.
+        CompetitorTable::add(['NAME' => 'assum.ru']);
+        // CompetitorTable::add(['NAME' => '7pack.pro']); // нет ценников
+        CompetitorTable::add(['NAME' => 'p-z-o.com']);
+        // CompetitorTable::add(['NAME' => 'bristolgroup.ru']); // нет ценников
+        
         return true;
     }
 
