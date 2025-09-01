@@ -525,10 +525,23 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     ]
                 );
                 $i = 0;
-                foreach ($itemLink as $linkId => $link) {
+                foreach ($itemLink as $competitorName => $link) {
+
+                    $itemLinkData = PriceTable::getList([
+                        'select' => [
+                            '*',
+                            'COMPETITOR_NAME' => 'COMPETITOR.NAME',
+                        ],
+                        'filter' => [
+                            'LINK_ID' => $itemId,
+                            'COMPETITOR_NAME' => $competitorName,
+                        ],
+                        'limit' => 1,
+                    ])->fetch();
+
                     if (trim($link)!==''){
                         PriceTable::update(
-                            $linkId,
+                            $itemLinkData['ID'],
                             [
                                 'LINK' => $link,
                                 'IS_MAIN_LINK' => $i === 0,
@@ -536,7 +549,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                         );
                         $i++;
                     } else {
-                        PriceTable::delete($linkId);
+                        PriceTable::delete($itemLinkData['ID']);
                     }
                 }
                 if (is_array($newLink) && !empty($newLink)) {

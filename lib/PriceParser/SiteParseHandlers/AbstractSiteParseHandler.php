@@ -12,7 +12,9 @@ abstract class AbstractSiteParseHandler
     public function __construct(string $url) {
         $this->url = $url;
 
-        $response = (new GuzzleHttpClient())->get($this->url);
+        $response = (new GuzzleHttpClient(['defaults' => [
+            'verify' => false
+        ]]))->get($this->url);
         $content = $response->getBody()->getContents();
 
         $this->crawler = new Crawler($content);
