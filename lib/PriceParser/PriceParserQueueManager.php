@@ -82,6 +82,12 @@ class PriceParserQueueManager
                         Logger::error('Ошибка при парсинге: ' . $th->getMessage(), [
                             'trace: ' . $th->getTraceAsString(),
                         ]);
+
+                        // Устанавливаем ценник null, чтобы подсветить ошибку в xls
+                        self::setNewPrice(
+                            $element['ID'],
+                            null
+                        );
                     } finally {
                         // Удаляем элемент из очереди
                         $elementData = ParseQueueTable::getList([
@@ -101,7 +107,7 @@ class PriceParserQueueManager
         return '\\'.__METHOD__.'();';
     }
 
-    protected static function setNewPrice(int $linkId, float $price)
+    protected static function setNewPrice(int $linkId, ?float $price)
     {
         $link = PriceTable::getList([
             'select' => ['ID'],

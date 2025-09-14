@@ -9,6 +9,7 @@ use Bitrix\Main\Loader,
     Bitrix\Main\UI\PageNavigation,
     CUtil;
 
+use Ivankarshev\Parser\Helper;
 use Ivankarshev\Parser\Options\OptionManager;
 use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable, CompetitorTable};
 use Ivankarshev\Parser\PriceParser\PriceParserQueueManager;
@@ -31,6 +32,13 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             "sort" => 'ID',
             "default" => true,
             'type' => 'number',
+        ],
+        [
+            "id" => 'USER_FIO',
+            "name" => 'Пользователь',
+            "sort" => 'USER_FIO',
+            "default" => true,
+            'type' => 'string',
         ],
         [
             "id" => 'PRODUCT_NAME',
@@ -263,11 +271,13 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 $sectionName = 'Без раздела';
             }
 
-
             $rows[] = [
                 'data' => array_merge(
                     [
                         'ID' => $row['ID'] ?? '',
+                        'USER_FIO' => ($userName = Helper::getUserFullName($row['USER_ID']))
+                            ? $userName
+                            : '',
                         'PRODUCT_NAME' => $row['PRODUCT_NAME'] ?? '',
                         'PRODUCT_CODE' => $row['PRODUCT_CODE'] ?? '',
                         'SECTION_ID' => $sectionName,
@@ -471,6 +481,8 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
     public static function SaveEditProfileAction(): void
     {
         try {
+            global $USER;
+
             $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
             // $post = $request->getPostList();
 
@@ -495,6 +507,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
 
             if (!$itemId && $isNew) {
                 $NewId = LinkTargerTable::add([
+                    'USER_ID' => $USER->getId(),
                     'PRODUCT_NAME' => $productName ?? '',
                     'PRODUCT_CODE' => $productCode ?? '',
                     'SECTION_ID' => $sectionId ?? '',
@@ -519,6 +532,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 LinkTargerTable::update(
                     $itemId,
                     [
+                        'USER_ID' => $USER->getId(),
                         'PRODUCT_NAME' => $productName,
                         'PRODUCT_CODE' => $productCode,
                         'SECTION_ID' => $sectionId,

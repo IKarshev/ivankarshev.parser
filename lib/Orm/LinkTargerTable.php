@@ -19,6 +19,7 @@ class LinkTargerTable extends Entity\DataManager
     {
         return array(
             new IntegerField('ID', array('primary' => true, 'autocomplete' => true)),
+            new IntegerField('USER_ID'),
             (new Reference('LINK_ITEMS',
 					PriceTable::class,
 					Join::on('this.ID', 'ref.LINK_ID')

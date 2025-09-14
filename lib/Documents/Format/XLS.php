@@ -84,6 +84,10 @@ Class XLS extends GetOrderInfo implements DocumentsInterface
 
                 foreach ($sectionLinks as $arkey => $arItem) {
                     // Заполняем инфу по разделу если её там ещё нет
+                    $arItem['USER_NAME'] = ($userName = Helper::getUserFullName($arItem['USER_ID']))
+                        ? $userName
+                        : '';
+
                     if ($arItem['SECTION_ID'] == 0) {
                         if (!isset($arResult['SECTIONS'][0])) {
                             $arResult['SECTIONS'][0]['SECTION_ID'] = 0;

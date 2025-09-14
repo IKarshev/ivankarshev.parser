@@ -2,6 +2,7 @@
 namespace Ivankarshev\Parser;
 
 use Bitrix\Main\Loader,
+    Bitrix\Main\UserTable,
     CIBlockProperty,
     CIBlockPropertyEnum;
 
@@ -131,5 +132,16 @@ Class Helper
             'Э' => 'E',    'Ю' => 'Yu',   'Я' => 'Ya',
         ));
     }
+
+    public static function getUserFullName(int $userId): ?string
+    {
+        $requestUserData = UserTable::getList([
+            'select' => ['LAST_NAME', 'NAME', 'SECOND_NAME'],
+            'filter' => ['ID' => $userId],
+        ])->fetch();
+
+        return $requestUserData 
+            ? implode(' ', $requestUserData) 
+            : null;
+    }
 }
-?>
