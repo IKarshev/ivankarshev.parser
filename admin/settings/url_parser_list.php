@@ -7,12 +7,15 @@ $APPLICATION->setTitle('Панель настроек парсера');
 
 \Bitrix\Main\Loader::includeModule('ivankarshev.parser');
 ?>
-
-<?$APPLICATION->IncludeComponent(
-    "IvanKarshev:linkspanel",
-    "",
-    Array()
-);?>
+<?if (in_array($APPLICATION->GetGroupRight('ivankarshev.parser'), ['R', 'W'])): ?>
+    <?$APPLICATION->IncludeComponent(
+        "IvanKarshev:linkspanel",
+        "",
+        Array()
+    );?>
+<?else:?>
+    <div>Доступ запрещен</div>
+<?endif;?>
 
 
 <?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");?>

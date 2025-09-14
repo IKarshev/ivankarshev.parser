@@ -33,6 +33,12 @@ class OptionList
                     )
                 ]
             ],
+            [
+                "DIV" => "parser_base_access_settings",
+                "TAB"=> 'Настройки доступов',
+                "TITLE" => 'Настройки доступов',
+                "OPTIONS" => []
+            ],
         ];
     }
 }

@@ -12,8 +12,9 @@ class OnBuildGlobalMenuHandler
 {
   public static function init(&$arGlobalMenu, &$arModuleMenu)
   {
-    global $USER;
-    if (!$USER->IsAdmin())
+    global $USER, $APPLICATION;
+    
+    if (!in_array($APPLICATION->GetGroupRight('ivankarshev.parser'), ['R', 'W']))
       return;
 
     $subMenuList = [

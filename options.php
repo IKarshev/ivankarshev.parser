@@ -94,8 +94,9 @@ foreach($aTabs as $aTab){
 
         $OptionManager->__AdmSettingsDrawList($aTab["OPTIONS"]);
     }
+    $tabControl->BeginNextTab();
+    require_once(\Bitrix\Main\Application::getDocumentRoot() . '/bitrix/modules/main/admin/group_rights.php');
 }
-
 $tabControl->Buttons();
 ?>
 

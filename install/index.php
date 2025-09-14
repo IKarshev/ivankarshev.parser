@@ -27,11 +27,18 @@ Class Ivankarshev_Parser extends CModule
     var $MODULE_NAME;
     var $MODULE_DESCRIPTION;
     var $errors;
+
+    public $SHOW_SUPER_ADMIN_GROUP_RIGHTS;
+    public $MODULE_GROUP_RIGHTS;
+
     function __construct(){
         $this->MODULE_VERSION = "0.0.1";
         $this->MODULE_VERSION_DATE = "15.07.2025";
         $this->MODULE_NAME = "IvanKarshev - парсер";
         $this->MODULE_DESCRIPTION = "Парсер цен конкурентов";
+
+        $this->SHOW_SUPER_ADMIN_GROUP_RIGHTS = 'Y';
+        $this->MODULE_GROUP_RIGHTS = 'Y';
     }
 
     function DoInstall(){
