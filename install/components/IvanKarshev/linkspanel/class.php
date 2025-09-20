@@ -10,9 +10,12 @@ use Bitrix\Main\Loader,
     CUtil;
 
 use Ivankarshev\Parser\Helper;
+use Ivankarshev\Parser\Main\Logger;
 use Ivankarshev\Parser\Options\OptionManager;
 use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable, CompetitorTable};
 use Ivankarshev\Parser\PriceParser\PriceParserQueueManager;
+use Ivankarshev\Parser\Exceptions\LinkExistException;
+
 
 Loader::includeModule('iblock');
 Loader::includeModule('ivankarshev.parser');
@@ -478,13 +481,13 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
         }
     }
 
-    public static function SaveEditProfileAction(): void
+    public static function SaveEditProfileAction()
     {
         try {
             global $USER;
 
             $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
-            // $post = $request->getPostList();
+            $post = $request->getPostList();
 
             $itemId = $request->getPost('ID');
             $isNew = $request->getPost('is_new');
@@ -493,6 +496,41 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             $sectionId = $request->getPost('SECTION_ID');
             $itemLink = $request->getPost('LINK');
             $newLink = $request->getPost('NEW_LINK');
+
+            // Проверка на дубль
+            $searchLink = LinkTargerTable::getList([
+                'select' => [
+                    '*',
+                    'LINK_' => 'LINK_ITEMS',
+                    'COMPETITOR_ID' => 'COMPETITOR.ID',
+                    'COMPETITOR_NAME' => 'COMPETITOR.NAME',
+                ],
+                'runtime' => [
+                    'COMPETITOR' => [
+                        'data_type' => CompetitorTable::class,
+                        'reference' => [
+                            '=this.LINK_COMPETITOR_ID' => 'ref.ID',
+                        ],
+                        ['join_type' => 'LEFT']
+                    ],
+                ],
+                'filter' => [
+                    'PRODUCT_NAME' => $productName,
+                    'LINK_LINK' => $isNew 
+                        ? $newLink
+                        : $itemLink,
+                ],
+            ])->fetchAll();
+
+            if (!empty($searchLink)) {
+                $linkCompetitor = implode(', ', array_unique(array_column($searchLink, 'COMPETITOR_NAME')));
+                $noticeMsg = "Ссылки ($linkCompetitor) для товара $productName уже существуют.";
+                if ($isNew) {
+                    throw new LinkExistException($noticeMsg);
+                } else {
+                    $noticeMsg .= " Элемент был изменен.";
+                }
+            }
 
             $CompetitorTableData = CompetitorTable::getList([
                 'select' => ['*'],
@@ -585,8 +623,16 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 }
                 PriceParserQueueManager::addItemToQueue($itemId);
             }
+
+            if (isset($noticeMsg)) {
+                return ['notice' => $noticeMsg];
+            }
+        } catch (LinkExistException $th) {
+            Logger::notice($th->getMessage());
+            throw new \Exception('Ошибка: '.$th->getMessage());
         } catch (\Throwable $th) {
-            throw $th;
+            Logger::error($th->getMessage());
+            throw new \Exception('Неизвестная ошибка. Обратитесь к администратору');
         }
     }
 

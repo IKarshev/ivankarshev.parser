@@ -84,12 +84,15 @@ $ItemId = (($itemKey = array_search('ID', array_column($arResult, 'CODE')))!==nu
                 data: new FormData( document.getElementById('SaveLinkForm') ),
             }).then(
                 response => {
+                    if (response.data?.notice) {
+                        alert(response.data.notice);
+                    }
                     editLinkForm.close();
                     RefrechGrid('LINK_LIST_GRID');
                 },
                 error => {
                     console.log(error);
-                    alert('Ошибка. Обратитесь к разработчику.');
+                    alert(error.errors[0].message);
                 },
             );
         },
