@@ -30,6 +30,12 @@ class OptionList
                         Loc::getMessage("SECTION_IBLOCK_ID"),
                         '',
                         array("selectbox"),
+                    ),
+                    array(
+                        "COMPETITOR_STRUCTURE_IBLOCK_ID",
+                        Loc::getMessage("COMPETITOR_STRUCTURE_IBLOCK_ID"),
+                        '',
+                        array("selectbox"),
                     )
                 ]
             ],

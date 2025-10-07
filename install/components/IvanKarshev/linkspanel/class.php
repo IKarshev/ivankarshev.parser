@@ -65,6 +65,13 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             'type' => 'select',
         ],
         [
+            "id" => 'COMPETITOR_STRUCTURE_IBLOCK_ID',
+            "name" => 'Привязка к структуре конкурентов',
+            "sort" => 'COMPETITOR_STRUCTURE_IBLOCK_ID',
+            "default" => true,
+            'type' => 'select',
+        ],
+        [
             "id" => 'LINK',
             "name" => 'Наш товар',
             "sort" => 'LINK',
@@ -321,7 +328,10 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
             $LinkId = $request->getPost('ID');
             $templateFolder = $request->getPost('TEMPLATE_FOLDER');
+            $competitorSectionId = $request->getPost('COMPETITOR_SECTION_ID');
             $isNewItem = is_null($LinkId);
+
+            $OptionManager = new OptionManager();
 
             if ($LinkId) {
                 $dataRequest = LinkTargerTable::getList([
@@ -344,7 +354,8 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ])->fetchAll();
             }
 
-            if ($sectionIblockId = (new OptionManager())->getOption('SECTION_IBLOCK_ID')) {
+            // Привязка к разделу
+            if ($sectionIblockId = $OptionManager->getOption('SECTION_IBLOCK_ID')) {
                 $rsSection = \Bitrix\Iblock\SectionTable::getList([
                     'order' => ['LEFT_MARGIN' => 'ASC'], // Важно для правильного порядка дерева
                     'filter' => [
@@ -380,6 +391,50 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 $displayName .= '['.$section['ID'].'] '. $section['NAME'];
 
                 $SectionOptions[] = [
+                    'ID' => $section['ID'],
+                    'NAME' => $section['NAME'],
+                    'DISPLAY_NAME' => $displayName,
+                    'DEPTH_LEVEL' => $section['DEPTH_LEVEL'],
+                ];
+            }
+
+            // Привязка к структуре конкурентов
+            if ($competitorStructureIblockId = $OptionManager->getOption('COMPETITOR_STRUCTURE_IBLOCK_ID')) {
+                $rsSection = \Bitrix\Iblock\SectionTable::getList([
+                    'order' => ['LEFT_MARGIN' => 'ASC'], // Важно для правильного порядка дерева
+                    'filter' => [
+                        'IBLOCK_ID' => $competitorStructureIblockId->getValue(),
+                        'ACTIVE' => 'Y', // если нужно только активные
+                    ],
+                    'select' => [
+                        'ID', 
+                        'CODE',
+                        'NAME', 
+                        'DEPTH_LEVEL',
+                        'IBLOCK_SECTION_ID', // ID родительского раздела
+                        'LEFT_MARGIN',
+                        'RIGHT_MARGIN',
+                    ],
+                ])->fetchAll();
+            }
+
+            $competitorSectionOptions[] = [
+                'ID' => 0,
+                'NAME' => 'Без раздела',
+                'DISPLAY_NAME' => 'Без раздела',
+                'DEPTH_LEVEL' => 0,
+            ];
+
+            foreach ($rsSection as $section) {
+                $displayName = '';
+                if ($section['DEPTH_LEVEL'] > 1) {
+                    for ($i=1; $i < $section['DEPTH_LEVEL']; $i++) { 
+                        $displayName .= '_';
+                    }
+                }
+                $displayName .= '['.$section['ID'].'] '. $section['NAME'];
+
+                $competitorSectionOptions[] = [
                     'ID' => $section['ID'],
                     'NAME' => $section['NAME'],
                     'DISPLAY_NAME' => $displayName,
@@ -429,9 +484,43 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     'IS_REQUIRED' => false,
                     'MULTIPLE' => false,
                 ],
+                [
+                    'CODE' => 'COMPETITOR_STRUCTURE_IBLOCK_ID',
+                    'NAME_ATTRIBUTE' => 'COMPETITOR_STRUCTURE_IBLOCK_ID',
+                    'NAME' => 'Привязка к структуре конкурентов',
+                    'VALUE' => $competitorSectionId,
+                    'OPTIONS' => $competitorSectionOptions,
+                    'TYPE' => 'select',
+                    'ONLY_READ' => false,
+                    'IS_REQUIRED' => false,
+                    'MULTIPLE' => false,
+                ],
             ];
 
-            $siteData = function(string $siteName) use ($dataRequest){
+            if ($competitorSectionId && $competitorStructureIblockId) {
+                $IblockClass = \Bitrix\Iblock\Iblock::wakeUp($competitorStructureIblockId->getValue())->getEntityDataClass();
+                $competitorSectionItemsQuery = $IblockClass::getList([
+                    'select' => ['ID', 'NAME'],
+                    'filter' => [
+                        'IBLOCK_ID' => $competitorStructureIblockId->getValue(),
+                        'IBLOCK_SECTION_ID' => $competitorSectionId
+                    ],
+                ])->fetchAll();
+
+                if (!empty($competitorSectionItemsQuery)) {
+                    $competitorSectionItems = array_column($competitorSectionItemsQuery, 'NAME');
+                }
+            }
+
+            $competitorSectionItems = isset($competitorSectionItems) 
+                ? $competitorSectionItems
+                : null;
+
+            $siteData = function(string $siteName) use ($dataRequest, $competitorSectionItems){
+                if ($competitorSectionItems!==null && !in_array($siteName, $competitorSectionItems)) {
+                    return false;
+                }
+
                 $sitekey = is_array($dataRequest) && !empty($dataRequest)
                     ? array_search($siteName, array_column($dataRequest, 'COMPETITOR_NAME'))
                     : null;
@@ -455,20 +544,27 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             };
 
             // Добавляем сайты
-            $arResult[] =  $siteData('hmru.ru');
-            $arResult[] =  $siteData('hurakan-russia.ru');
-            $arResult[] =  $siteData('magikon.ru');
-            $arResult[] =  $siteData('kdm-trading.ru');
-            $arResult[] =  $siteData('voltekgroup.com');
-            // $arResult[] =  $siteData('hurakan.ru');
-            // $arResult[] =  $siteData('fartov.com');
-            $arResult[] =  $siteData('bronko.ru');
-            $arResult[] =  $siteData('агрозавод.рф');
-            // $arResult[] =  $siteData('airhot.ru');
-            $arResult[] =  $siteData('assum.ru');
-            // $arResult[] =  $siteData('7pack.pro');
-            $arResult[] =  $siteData('p-z-o.com');
-            // $arResult[] =  $siteData('bristolgroup.ru');
+            $siteList = [
+                'hmru.ru',
+                'hurakan-russia.ru',
+                'magikon.ru',
+                'kdm-trading.ru',
+                'voltekgroup.com',
+                // 'hurakan.ru',
+                // 'fartov.com',
+                'bronko.ru',
+                'агрозавод.рф',
+                // 'airhot.ru',
+                'assum.ru',
+                // '7pack.pro',
+                'p-z-o.com',
+                // 'bristolgroup.ru',
+            ];
+            foreach ($siteList as $siteDomain) {
+                if ($siteInfo = $siteData($siteDomain)) {
+                    $arResult[] = $siteInfo;
+                }
+            }
 
             ob_start();
             require(\Bitrix\Main\Application::getDocumentRoot().$templateFolder.'/form.php');

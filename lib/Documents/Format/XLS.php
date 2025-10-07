@@ -111,6 +111,7 @@ Class XLS extends GetOrderInfo implements DocumentsInterface
                     if ($arItem['LINK_IS_MAIN_LINK']) {
                         $arResult['SECTIONS'][$arItem['SECTION_ID']]['ROWS'][$arItem['ID']]['MAIN_LINK'] = $arItem;
                     } else {
+                        /** @todo сделать проверку на домен чтобы выводить пустые ячейки */
                         $arResult['SECTIONS'][$arItem['SECTION_ID']]['ROWS'][$arItem['ID']]['TARGET_LINKS'][] = $arItem;
                         $arResult['COLUMNS'][] = $arItem['COMPETITOR_NAME'];
                     }

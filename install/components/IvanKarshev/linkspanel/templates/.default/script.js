@@ -6,6 +6,7 @@ function editLinkData( Data )
         data: {
             'ID': Data.ID,
             'TEMPLATE_FOLDER': templateFolder,
+            'COMPETITOR_SECTION_ID': Data.COMPETITOR_SECTION_ID,
         },
     }).then(
         response => {
@@ -68,6 +69,15 @@ $(function(){
     $('body').on('click', '.js-new-item-popup', function(event){
         event.preventDefault();
 
-        editLinkData({'ID': null});
+        editLinkData({'ID': null, 'COMPETITOR_SECTION_ID': null});
+    })
+
+    $('body').on('change', 'select[name=COMPETITOR_STRUCTURE_IBLOCK_ID]', function(event){
+        event.preventDefault();
+
+        editLinkData({
+            'ID': null,
+            'COMPETITOR_SECTION_ID': $(this).val()
+        });
     })
 })

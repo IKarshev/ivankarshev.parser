@@ -59,7 +59,8 @@ $infoblock = \Bitrix\Iblock\IblockTable::getList( [
     'select' => ['ID', 'NAME'],
 ]);
 while ($row = $infoblock->fetch()) {
-    $SECTION_IBLOCK_ID_option[$row['ID']] = $OFFERS_IBLOCK_ID_option[$row['ID']] = "[".$row['ID']."] ".$row['NAME'];
+    $SECTION_IBLOCK_ID_option[$row['ID']] = 
+    $COMPETITOR_STRUCTURE_IBLOCK_ID_option[$row['ID']] = $OFFERS_IBLOCK_ID_option[$row['ID']] = "[".$row['ID']."] ".$row['NAME'];
 }
 
 // Заполняем варианты для selectbox, multiselectbox
