@@ -75,8 +75,10 @@ $(function(){
     $('body').on('change', 'select[name=COMPETITOR_STRUCTURE_IBLOCK_ID]', function(event){
         event.preventDefault();
 
+        let ID = $('#SaveLinkForm input[NAME=ID]').val();
+
         editLinkData({
-            'ID': null,
+            'ID': ID ? ID : null,
             'COMPETITOR_SECTION_ID': $(this).val()
         });
     })

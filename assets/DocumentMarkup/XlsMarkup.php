@@ -2,14 +2,6 @@
 /**
  * @var array $arResult - данные
  */
-
-ob_start();
-print_r($arResult);
-$debug = ob_get_contents();
-ob_end_clean();
-$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params.log', 'w+');
-fwrite($fp, $debug);
-fclose($fp);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,7 +69,9 @@ fclose($fp);
                             <td style="padding:0 4px;border-right: 1pt solid #000000;">
                                 <div class="item"><?=$arItem['MAIN_LINK']['LINK_PRICE']?></div>
                             </td>
-                            <?foreach ($arItem['TARGET_LINKS'] as $targetLinkKey => $targetLinkValue):
+                            <?
+                            $i = 0;
+                            foreach ($arItem['TARGET_LINKS'] as $targetLinkKey => $targetLinkValue):
                                 if ($arItem['MAIN_LINK']['LINK_PRICE'] === null || $targetLinkValue['LINK_PRICE'] === null) {
                                     $priceStyles = 'background-color:#FD6A02;text-align:right;';
                                     $linkStyles = 'background-color:#FD6A02;';
@@ -91,14 +85,24 @@ fclose($fp);
                                     $priceStyles  = $linkStyles = '';
                                 }
 
-                                ?>
-                                <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$linkStyles?>">
-                                    <div class="item"><?=$targetLinkValue['LINK_LINK']?></div>
-                                </td>
-                                <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$priceStyles?>">
-                                    <div class="item"><?=$targetLinkValue['LINK_PRICE']?></div>
-                                </td>
-                            <?endforeach;?>
+                                if (($keyItem = array_search($targetLinkValue['COMPETITOR_NAME'], $arResult['COLUMNS']))!==null):
+                                    if ($i < $keyItem):
+                                        for ($i; $i < $keyItem; $i++):?>
+                                            <td class="empty" style="padding:0 4px;border-right: 1pt solid #000000;"><div class="item"></div></td>
+                                            <td class="empty" style="padding:0 4px;border-right: 1pt solid #000000;"><div class="item"></div></td>
+                                        <?endfor;?>
+                                    <?endif;?>
+
+                                    <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$linkStyles?>">
+                                        <div class="item"><?=$targetLinkValue['LINK_LINK']?></div>
+                                    </td>
+                                    <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$priceStyles?>">
+                                        <div class="item"><?=$targetLinkValue['LINK_PRICE']?></div>
+                                    </td>
+                                <?endif;?>
+                            <?
+                            $i++;
+                            endforeach;?>
                         </tr>
                     <?$rowsIteration++;
                     endforeach;?>

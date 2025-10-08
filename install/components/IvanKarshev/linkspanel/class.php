@@ -509,6 +509,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
 
                 if (!empty($competitorSectionItemsQuery)) {
                     $competitorSectionItems = array_column($competitorSectionItemsQuery, 'NAME');
+                    array_unshift($competitorSectionItems, 'hmru.ru');
                 }
             }
 
@@ -594,6 +595,11 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             $newLink = $request->getPost('NEW_LINK');
 
             // Проверка на дубль
+            $checkLink = $isNew ? $newLink : $itemLink;
+            $checkLink = array_filter($checkLink, function($item){
+                return $item!=='';
+            });
+
             $searchLink = LinkTargerTable::getList([
                 'select' => [
                     '*',
@@ -612,9 +618,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ],
                 'filter' => [
                     'PRODUCT_NAME' => $productName,
-                    'LINK_LINK' => $isNew 
-                        ? $newLink
-                        : $itemLink,
+                    'LINK_LINK' => $checkLink,
                 ],
             ])->fetchAll();
 
