@@ -220,15 +220,14 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
         ]);
         $dataRowList = $dataRequest->fetchAll();
 
-        foreach($dataRowList as $row){
-            // Затираем переменные с предыдущей итерации
-            foreach (['customRowData', 'section'] as $varName) {
-                if (isset($$varName)) {
-                    unset($$varName);
-                }
-            }
-
-            $linkData = LinkTargerTable::getList([
+        $CompetitorList = array_column(
+            CompetitorTable::getList(['select'=>['NAME']])->fetchAll(),
+            'NAME'
+        );
+        $CompetitorList = array_fill_keys($CompetitorList, 0);
+        
+        foreach ($dataRowList as $row) {
+            $linkFullData[$row['ID']] = LinkTargerTable::getList([
                 'select' => [
                     'ID',
                     'SECTION_ID',
@@ -249,11 +248,44 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 ]
             ])->fetchAll();
 
+            foreach ($linkFullData as $linkFullDataItem) {
+                foreach (array_column($linkFullDataItem, 'COMPETITOR_NAME') as $competitiorName) {
+                    if (array_key_exists($competitiorName, $CompetitorList)) {
+                        $CompetitorList[$competitiorName]++;
+                    }
+                }
+            }
+            $columnFullList = $tempArray = array_filter($CompetitorList, function ($item) {
+                return $item > 0;
+            });
+
+            $columnFullList = [];
+            foreach ($tempArray as $name => $countItem) {
+                $columnFullList[] = $name;
+            }
+        }
+
+        foreach($dataRowList as $row){
+            // Затираем переменные с предыдущей итерации
+            foreach (['customRowData', 'section'] as $varName) {
+                if (isset($$varName)) {
+                    unset($$varName);
+                }
+            }
+
+            $linkData = $linkFullData[$row['ID']];
+            
             if (!empty($linkData)) {
                 foreach ($linkData as $key => $value) {
-                    $fieldName = $value['LINK_IS_MAIN_LINK'] ? 'LINK' : "LINK_$key";
+                    if (($competitorKey = array_search($value['COMPETITOR_NAME'], $columnFullList)) !== null) {
+                        if ($value['LINK_IS_MAIN_LINK']) {
+                            $customRowData["LINK"] = $value['LINK_LINK'];
+                        } else {
+                            $customRowData["LINK_$competitorKey"] = $value['LINK_LINK'];
+                        }
+                    }
 
-                    $customRowData[$fieldName] = $value['LINK_LINK'];
+                    $fieldName = $value['LINK_IS_MAIN_LINK'] ? 'LINK' : "LINK_$key";
                     $customColumns[$fieldName] = [
                         "id" => $fieldName,
                         "name" => $value['LINK_IS_MAIN_LINK'] ? 'Наша ссылка' : $value['COMPETITOR_NAME'],

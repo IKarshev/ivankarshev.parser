@@ -9,11 +9,14 @@ use Ivankarshev\Parser\Helper;
 use Ivankarshev\Parser\Options\OptionManager;
 use Ivankarshev\Parser\Documents\GetOrderInfo;
 use Ivankarshev\Parser\Documents\DocumentsInterface;
+use Ivankarshev\Parser\Documents\DocumentFormatTrait;
 
 use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable, CompetitorTable};
 
-Class XLS extends GetOrderInfo implements DocumentsInterface
+final Class XLS extends GetOrderInfo implements DocumentsInterface
 {
+    use DocumentFormatTrait;
+
     public function __construct(string $markupFileUrl) {
         parent::__construct($markupFileUrl);
     }
@@ -28,11 +31,6 @@ Class XLS extends GetOrderInfo implements DocumentsInterface
             
         $fileName = 'pricelist_'.$datetime.'.xls';
         self::downloadFile($output, $fileName);
-    }
-
-    public function test()
-    {
-        return $this->createMarkup();
     }
 
     /**
@@ -127,27 +125,6 @@ Class XLS extends GetOrderInfo implements DocumentsInterface
         } catch (\Throwable $th) {
             throw $th;
         }
-    }
-
-    public function saveFile(): int
-    {
-        $output = $this->createMarkup();
-        $datetime = (new \DateTime())
-            ->setTimeZone(new \DateTimeZone('Asia/Novosibirsk'))
-            ->format('dmY');
-
-        $fileName = 'pricelist_'.$datetime.'.xls';
-        
-        $fileId = \CFile::SaveFile(
-            [
-                'name' => $fileName,
-                "MODULE_ID" => 'ivankarshev.parser',
-                'content' => $output,
-            ],
-            'ivankarshev_parser'
-        );
-
-        return $fileId;
     }
 }
 ?>
