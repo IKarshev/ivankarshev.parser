@@ -14,6 +14,8 @@ use Ivankarshev\Parser\Documents\GetOrderInfo;
 use Ivankarshev\Parser\Documents\DocumentsInterface;
 use Ivankarshev\Parser\Documents\DocumentFormatTrait;
 
+use Bitrix\Iblock\SectionElementTable;
+
 final Class XLSCompetitorStructur extends GetOrderInfo implements DocumentsInterface
 {
     use DocumentFormatTrait;
@@ -54,17 +56,34 @@ final Class XLSCompetitorStructur extends GetOrderInfo implements DocumentsInter
                     ['ID', 'NAME']
                 );
 
-                // // Перебираем категории и получаем все товары со ссылками по конкурентам
+                // Перебираем категории и получаем все товары со ссылками по конкурентам
                 $arResult['COLUMNS'] = [];
+
                 foreach ($sections as $section) {
+                    // Удаляем переменные между итерациями
+                    foreach(['sectionCompetitorList', 'sectionCompetitorIdList'] as $variableName) {
+                        if (isset($$variableName)) {
+                            unset($$variableName);
+                        }
+                    }
+
                     $sectionId = $section['ID'];
 
-                    $sectiomCompetitorList = $IblockClass::getList([
-                        'select' => ['ID', 'NAME'],
+                    $sectionCompetitorIdList = SectionElementTable::getList([
+                        'select' => ['IBLOCK_ELEMENT_ID'],
                         'filter' => [
-                            'IBLOCK_SECTION_ID' => $sectionId,
+                            '=IBLOCK_SECTION_ID' => $sectionId
                         ],
                     ])->fetchAll();
+
+                    if (!empty($sectionCompetitorIdList)) {
+                        $sectionCompetitorList = $IblockClass::getList([
+                            'select' => ['ID', 'NAME'],
+                            'filter' => [
+                                'ID' =>  array_column($sectionCompetitorIdList, 'IBLOCK_ELEMENT_ID'),
+                            ],
+                        ])->fetchAll();
+                    }
 
                     $links = LinkTargerTable::getList([
                         'select' => [
@@ -74,10 +93,7 @@ final Class XLSCompetitorStructur extends GetOrderInfo implements DocumentsInter
                             'COMPETITOR_NAME' => 'COMPETITOR.NAME',
                         ],
                         'filter' => [
-                            'COMPETITOR_NAME' => array_merge(
-                                array_column($sectiomCompetitorList, 'NAME'),
-                                ['hmru.ru']  
-                            )
+                            'COMPETITOR_NAME' => array_column($sectionCompetitorList, 'NAME'),
                         ],
                         'runtime' => [
                             'COMPETITOR' => [
@@ -119,15 +135,52 @@ final Class XLSCompetitorStructur extends GetOrderInfo implements DocumentsInter
                         }
 
                         // Добавляем элементы в раздел
-                        if ($arItem['LINK_IS_MAIN_LINK']) {
-                            $arResult['SECTIONS'][$arItem['SECTION_ID']]['ROWS'][$arItem['ID']]['MAIN_LINK'] = $arItem;
-                        } else {
-                            $arResult['SECTIONS'][$arItem['SECTION_ID']]['ROWS'][$arItem['ID']]['TARGET_LINKS'][] = $arItem;
-                            $arResult['COLUMNS'][] = $arItem['COMPETITOR_NAME'];
-                        }
+                        $arResult['SECTIONS'][$arItem['SECTION_ID']]['ROWS'][$arItem['ID']]['MAIN_LINK'] = LinkTargerTable::getList([
+                            'select' => [
+                                '*',
+                                'LINK_' => 'LINK_ITEMS',
+                                'COMPETITOR_ID' => 'COMPETITOR.ID',
+                                'COMPETITOR_NAME' => 'COMPETITOR.NAME',
+                            ],
+                            'filter' => [
+                                'COMPETITOR_NAME' => 'hmru.ru',
+                                'LINK_LINK_ID' => $arItem['LINK_LINK_ID'],
+                            ],
+                            'runtime' => [
+                                'COMPETITOR' => [
+                                    'data_type' => CompetitorTable::class,
+                                    'reference' => [
+                                        '=this.LINK_COMPETITOR_ID' => 'ref.ID',
+                                    ],
+                                    ['join_type' => 'LEFT']
+                                ],
+                            ],
+                            'limit' => 1,
+                        ])->fetch();
+                        
+
+                        $arResult['SECTIONS'][$arItem['SECTION_ID']]['ROWS'][$arItem['ID']]['TARGET_LINKS'][] = $arItem;
+                        $arResult['COLUMNS'][] = $arItem['COMPETITOR_NAME'];
                     }
                 }
-                $arResult['COLUMNS'] = array_unique($arResult['COLUMNS']);
+
+                
+                $arResult['COLUMNS'] = $correctOrder = array_values(array_unique($arResult['COLUMNS']));
+
+                // Сортируем данные по колонкам
+                /**
+                 * @todo При сортировке что-то ломается в xls
+                 * 
+                 * foreach ($arResult['SECTIONS'] as &$section) {
+                 *     foreach ($section['ROWS'] as &$row) {
+                 *         usort($row['TARGET_LINKS'], function($a, $b) use ($correctOrder) {
+                 *             $posA = array_search($a['COMPETITOR_NAME'], $correctOrder);
+                 *             $posB = array_search($b['COMPETITOR_NAME'], $correctOrder);
+                 *             return $posA - $posB;
+                 *         });
+                 *     }
+                 * }
+                */
             }
 
             ob_start();

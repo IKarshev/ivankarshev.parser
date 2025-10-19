@@ -27,6 +27,7 @@ class LinkTargerTable extends Entity\DataManager
             new StringField('PRODUCT_NAME'),
             new StringField('PRODUCT_CODE'),
             new IntegerField('SECTION_ID'),
+            new IntegerField('COMPETITOR_SECTION_ID'),
         );
     }
 }

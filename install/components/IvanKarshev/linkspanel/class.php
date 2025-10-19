@@ -231,6 +231,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 'select' => [
                     'ID',
                     'SECTION_ID',
+                    'COMPETITOR_SECTION_ID',
                     'LINK_' => 'LINK_ITEMS',
                     'COMPETITOR_ID' => 'COMPETITOR.ID',
                     'COMPETITOR_NAME' => 'COMPETITOR.NAME',
@@ -331,6 +332,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                         'text' => 'Изменить',
                         'onclick' => 'editLinkData('.CUtil::PhpToJSObject([
                             'ID' => $row['ID'],
+                            'COMPETITOR_SECTION_ID' => $row['COMPETITOR_SECTION_ID'],
                         ]).')',
                     ],
                     [
@@ -616,16 +618,16 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
             global $USER;
 
             $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
-            $post = $request->getPostList();
+            // $post = $request->getPostList();
 
             $itemId = $request->getPost('ID');
             $isNew = $request->getPost('is_new');
             $productName = $request->getPost('PRODUCT_NAME');
             $productCode = $request->getPost('PRODUCT_CODE');
             $sectionId = $request->getPost('SECTION_ID');
+            $competitorSectionId = $request->getPost('COMPETITOR_STRUCTURE_IBLOCK_ID');
             $itemLink = $request->getPost('LINK');
             $newLink = $request->getPost('NEW_LINK');
-
             // Проверка на дубль
             $checkLink = $isNew ? $newLink : $itemLink;
             $checkLink = array_filter($checkLink, function($item){
@@ -681,6 +683,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     'PRODUCT_NAME' => $productName ?? '',
                     'PRODUCT_CODE' => $productCode ?? '',
                     'SECTION_ID' => $sectionId ?? '',
+                    'COMPETITOR_SECTION_ID' => $competitorSectionId ?? '',
                 ]);
                 $i = 0;
                 foreach ($newLink as $competitorName => $newLinkItem) {
@@ -706,6 +709,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                         'PRODUCT_NAME' => $productName,
                         'PRODUCT_CODE' => $productCode,
                         'SECTION_ID' => $sectionId,
+                        'COMPETITOR_SECTION_ID' => $competitorSectionId ?? '',
                     ]
                 );
                 $i = 0;
