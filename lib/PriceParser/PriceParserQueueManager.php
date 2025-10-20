@@ -7,7 +7,9 @@ use Ivankarshev\Parser\Main\Logger;
 use Ivankarshev\Parser\Helper;
 use Ivankarshev\Parser\Orm\{LinkTargerTable, ParseQueueTable, PriceTable};
 use Ivankarshev\Parser\PriceParser\ParsingManager;
-use Ivankarshev\Parser\Documents\Format\XLS as DownloadXLS;
+
+use Ivankarshev\Parser\Documents\Format\XLS as DownloadSectionXLS;
+use Ivankarshev\Parser\Documents\Format\XLSCompetitorStructur as DownloadCompetitorXLS;
 class PriceParserQueueManager
 {
     public static function addItemToQueue(int $linkId)
@@ -129,7 +131,7 @@ class PriceParserQueueManager
         try {
             self::startFullParse();
         } catch (\Throwable $th) {
-            Logger::error('Ошибка при добавлении свех записей в переиндексацию', [
+            Logger::error('Ошибка при добавлении вcех записей в переиндексацию', [
                 'trace: ' . $th->getTraceAsString(),
             ]);
         } finally {
@@ -140,11 +142,17 @@ class PriceParserQueueManager
     public static function sendPriceListEmailAgent()
     {
         try {
-            $FileDownloader = new DownloadXLS(
+            // Файл со структурой разделов
+            $FileSectionStructurDownloader = new DownloadSectionXLS(
                 \Bitrix\Main\Application::getDocumentRoot().'/'.Helper::GetModuleDirrectory().'/modules/ivankarshev.parser/assets/DocumentMarkup/XlsMarkup.php'
             );
+            $SectionFileId = $FileSectionStructurDownloader->SaveFile();
 
-            $fileId = $FileDownloader->SaveFile();
+            // Файл со структурой конкурентов
+            $FileCompetitorStructurDownloader = new DownloadCompetitorXLS(
+                \Bitrix\Main\Application::getDocumentRoot().'/'.Helper::GetModuleDirrectory().'/modules/ivankarshev.parser/assets/DocumentMarkup/XlsMarkup.php'
+            );
+            $CompetitorFileId = $FileCompetitorStructurDownloader->SaveFile();
 
             \CEvent::Send(
                 IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
@@ -152,7 +160,7 @@ class PriceParserQueueManager
                 [],
                 'Y',
                 '',
-                [$fileId]
+                [$SectionFileId, $CompetitorFileId]
             );
         } catch (\Throwable $th) {
             Logger::error('Ошибка при отправке письма с прайс листом', [

@@ -2,14 +2,6 @@
 /**
  * @var array $arResult - данные
  */
-
-ob_start();
-print_r($arResult);
-$debug = ob_get_contents();
-ob_end_clean();
-$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/lk-params.log', 'w+');
-fwrite($fp, $debug);
-fclose($fp);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,38 +69,45 @@ fclose($fp);
                             <td style="padding:0 4px;border-right: 1pt solid #000000;">
                                 <div class="item"><?=$arItem['MAIN_LINK']['LINK_PRICE']?></div>
                             </td>
-                            <?foreach ($arItem['TARGET_LINKS'] as $targetLinkKey => $targetLinkValue):
-                                if ($arItem['MAIN_LINK']['LINK_PRICE'] === null || $targetLinkValue['LINK_PRICE'] === null) {
-                                    $priceStyles = 'background-color:#FD6A02;text-align:right;';
-                                    $linkStyles = 'background-color:#FD6A02;';
-                                } elseif ($arItem['MAIN_LINK']['LINK_PRICE'] < $targetLinkValue['LINK_PRICE']) {
-                                    $priceStyles = 'background-color:green;text-align:right;';
-                                    $linkStyles = '';
-                                } elseif ($arItem['MAIN_LINK']['LINK_PRICE'] > $targetLinkValue['LINK_PRICE']) {
-                                    $priceStyles = 'background-color:red;text-align:left;';
-                                    $linkStyles = '';
-                                } else {
-                                    $priceStyles  = $linkStyles = '';
-                                }
 
-                                ?>
-                                <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$linkStyles?>">
-                                    <div class="item"><?=$targetLinkValue['LINK_LINK']?></div>
-                                </td>
-                                <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$priceStyles?>">
-                                    <div class="item"><?=$targetLinkValue['LINK_PRICE']?></div>
-                                </td>
+                            <?foreach ($arResult['COLUMNS'] as $columnKey => $columnItem):?>
+                                <?if (($targetItemKey = array_search($columnItem, array_column($arItem['TARGET_LINKS'], 'COMPETITOR_NAME')))!==false):
+
+                                    if ($arItem['MAIN_LINK']['LINK_PRICE'] === null || $arItem['TARGET_LINKS'][$targetItemKey]['LINK_PRICE'] === null) {
+                                        $priceStyles = 'background-color:#FD6A02;text-align:right;';
+                                        $linkStyles = 'background-color:#FD6A02;';
+                                    } elseif ($arItem['MAIN_LINK']['LINK_PRICE'] < $arItem['TARGET_LINKS'][$targetItemKey]['LINK_PRICE']) {
+                                        $priceStyles = 'background-color:green;text-align:right;';
+                                        $linkStyles = '';
+                                    } elseif ($arItem['MAIN_LINK']['LINK_PRICE'] > $arItem['TARGET_LINKS'][$targetItemKey]['LINK_PRICE']) {
+                                        $priceStyles = 'background-color:red;text-align:left;';
+                                        $linkStyles = '';
+                                    } else {
+                                        $priceStyles  = $linkStyles = '';
+                                    }                                    
+                                    
+                                    ?>
+                                    <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$linkStyles?>">
+                                        <div class="item"><?=$arItem['TARGET_LINKS'][$targetItemKey]['LINK_LINK']?></div>
+                                    </td>
+                                    <td style="padding:0 4px;border-right: 1pt solid #000000;<?=$priceStyles?>">
+                                        <div class="item"><?=$arItem['TARGET_LINKS'][$targetItemKey]['LINK_PRICE']?></div>
+                                    </td>
+                                <?else:?>
+                                    <td class="empty" style="padding:0 4px;border-right: 1pt solid #000000;"><div class="item"></div></td>
+                                    <td class="empty" style="padding:0 4px;border-right: 1pt solid #000000;"><div class="item"></div></td>
+                                <?endif;?>
                             <?endforeach;?>
                         </tr>
                     <?$rowsIteration++;
                     endforeach;?>
 
-                <?$sectionIteration++;?>
-                <?if($sectionIteration < count($arResult['SECTIONS'])):?>
-                    <tr style="border-bottom: 1pt solid #000000;">
-                        <td colspan="<?=5+count($arResult['COLUMNS'])?>"></td>
-                    </tr>
-                <?endif;?>
+                    <?$sectionIteration++;?>
+                    <?if($sectionIteration < count($arResult['SECTIONS'])):?>
+                        <tr style="border-bottom: 1pt solid #000000;">
+                            <td colspan="<?=6+count($arResult['COLUMNS'])*2?>"></td>
+                        </tr>
+                    <?endif;?>
                 <?endforeach;?>
             </tbody>
         </table>

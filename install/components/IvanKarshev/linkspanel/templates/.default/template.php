@@ -33,7 +33,8 @@ $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 		]);*/?>
 	</div>
 	<div class="btn-row">
-		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XLS'?>" class="ui-btn ui-btn-success">Скачать xls</a>
+		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XlsSections'?>" class="ui-btn ui-btn-success">Скачать xls по разделам</a>
+		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XlsCompetitor'?>" class="ui-btn ui-btn-success">Скачать xls по конкурентам</a>
 		<button class="ui-btn ui-btn-primary js-new-item-popup">Добавить ссылку</button>
 	</div>
 </div>
