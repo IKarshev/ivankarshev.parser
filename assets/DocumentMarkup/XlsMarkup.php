@@ -71,7 +71,7 @@
                             </td>
 
                             <?foreach ($arResult['COLUMNS'] as $columnKey => $columnItem):?>
-                                <?if (($targetItemKey = array_search($columnItem, array_column($arItem['TARGET_LINKS'], 'COMPETITOR_NAME')))!==false):
+                                <?if ($arItem['TARGET_LINKS']!==null && ($targetItemKey = array_search($columnItem, array_column($arItem['TARGET_LINKS'], 'COMPETITOR_NAME')))!==false):
 
                                     if ($arItem['MAIN_LINK']['LINK_PRICE'] === null || $arItem['TARGET_LINKS'][$targetItemKey]['LINK_PRICE'] === null) {
                                         $priceStyles = 'background-color:#FD6A02;text-align:right;';

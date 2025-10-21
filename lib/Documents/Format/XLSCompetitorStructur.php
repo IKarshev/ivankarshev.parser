@@ -93,7 +93,7 @@ final Class XLSCompetitorStructur extends GetOrderInfo implements DocumentsInter
                             'COMPETITOR_NAME' => 'COMPETITOR.NAME',
                         ],
                         'filter' => [
-                            'COMPETITOR_NAME' => array_column($sectionCompetitorList, 'NAME'),
+                            'COMPETITOR_NAME' => $sectionCompetitorList ? array_column($sectionCompetitorList, 'NAME') : [],
                         ],
                         'runtime' => [
                             'COMPETITOR' => [
