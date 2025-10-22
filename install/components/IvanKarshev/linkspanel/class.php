@@ -7,6 +7,7 @@ use Bitrix\Main\Loader,
     Bitrix\Main\Application,
     Bitrix\Main\Grid\Options as GridOptions,
     Bitrix\Main\UI\PageNavigation,
+    Bitrix\Iblock\SectionElementTable,
     CUtil;
 
 use Ivankarshev\Parser\Helper;
@@ -533,13 +534,22 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
 
             if ($competitorSectionId && $competitorStructureIblockId) {
                 $IblockClass = \Bitrix\Iblock\Iblock::wakeUp($competitorStructureIblockId->getValue())->getEntityDataClass();
-                $competitorSectionItemsQuery = $IblockClass::getList([
-                    'select' => ['ID', 'NAME'],
+
+                $sectionCompetitorIdList = SectionElementTable::getList([
+                    'select' => ['IBLOCK_ELEMENT_ID'],
                     'filter' => [
-                        'IBLOCK_ID' => $competitorStructureIblockId->getValue(),
-                        'IBLOCK_SECTION_ID' => $competitorSectionId
+                        '=IBLOCK_SECTION_ID' => $competitorSectionId
                     ],
                 ])->fetchAll();
+
+                if (!empty($sectionCompetitorIdList)) {
+                    $competitorSectionItemsQuery = $IblockClass::getList([
+                        'select' => ['ID', 'NAME'],
+                        'filter' => [
+                            'ID' =>  array_column($sectionCompetitorIdList, 'IBLOCK_ELEMENT_ID'),
+                        ],
+                    ])->fetchAll();
+                }
 
                 if (!empty($competitorSectionItemsQuery)) {
                     $competitorSectionItems = array_column($competitorSectionItemsQuery, 'NAME');
