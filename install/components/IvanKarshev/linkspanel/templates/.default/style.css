@@ -13,6 +13,14 @@
   margin: 0;
 }
 
+.bx-calendar-range .disabled {
+  pointer-events: none;
+}
+
+.bx-calendar-cell.disabled {
+  text-decoration: line-through;
+}
+
 .filter-btn-row {
   display: flex;
   flex-direction: row;

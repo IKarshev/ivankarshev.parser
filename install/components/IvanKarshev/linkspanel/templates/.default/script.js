@@ -65,7 +65,25 @@ function RefrechGrid(gridID) // RefrechGrid(arResult.LIST_ID);
     }
 }
 
+function onDatePickCallback() {
+    BX.ajax.runComponentAction('IvanKarshev:linkspanel', 'getAvailableFilesFormDay', {
+        mode: 'class',
+        data: {
+            'DATE': $('input[name=datePicker]').val(),
+        },
+    }).then(
+        response => {
+            
+        },
+        error => {
+            alert('Error: ' + error);
+        },
+    );
+
+}
+
 $(function(){
+    var calendarPicker = undefined;
     $('body').on('click', '.js-new-item-popup', function(event){
         event.preventDefault();
 
@@ -81,5 +99,79 @@ $(function(){
             'ID': ID ? ID : null,
             'COMPETITOR_SECTION_ID': $(this).val()
         });
+    })
+
+    $('body').on('click', '.js-date-picker', function(){
+        var calendatTimer;
+        const callback = function(mutationsList, observer) {
+            clearTimeout(calendatTimer);
+            calendatTimer = setTimeout(function(){
+                var firstdate, endDate;
+                let el = $('[id ^= "calendar_popup_"]'); //найдем div с календарем
+                let links = el.find(".bx-calendar-cell"); //найдем элементы отображающие дни
+
+                $(links).each(function(){
+                    if (!$(this).hasClass('bx-calendar-date-hidden')) {
+                        firstdate = $(this).html();
+                        return false;
+                    }
+                });
+
+                $($(links).get().reverse()).each(function(){
+                    if (!$(this).hasClass('bx-calendar-date-hidden')) {
+                        endDate = $(this).html();
+                        return false;
+                    }
+                });
+
+                let month = $('.bx-calendar-top-month').html();
+                let year = $('.bx-calendar-top-year').html();
+
+                // Делаем ajax запрос и получаем доступные даты для скачки файлов.
+                BX.ajax.runComponentAction('IvanKarshev:linkspanel', 'getAvailableFileDateList', {
+                    mode: 'class',
+                    data: {
+                        'START_DATE':firstdate,
+                        'END_DATE': endDate,
+                        'MONTH_NAME': month,
+                        'YEAR_NUMBER': year,
+                    },
+                }).then(
+                    response => {
+                        $(links).each(function(){
+                            if (response.data === null) {
+                                $(this).addClass('disabled');
+                            } else {
+                                if (!$(this).hasClass('bx-calendar-date-hidden')) {
+                                    if (!response.data.includes( $(this).html() )) {
+                                        $(this).addClass('disabled');
+                                    }
+                                }
+
+                            }
+                        })
+                    },
+                    error => {
+                        alert('Error: ' + error);
+                    },
+                );
+            }, 250);
+        };
+        callback();
+
+        if (calendarPicker===undefined) {
+            calendarPicker = true;            
+            // Регистрируем наблюдатель за изменениями календаря.
+            const observer = new MutationObserver(callback);
+            var BXcalendars = BX.findChildrenByClassName(document, 'bx-calendar-cell-block', true);
+            BXcalendars.forEach(function(item, i, arr) {
+                observer.observe(item, { attributes: true, childList: true, subtree: false });
+            }); 
+        }
+    })
+
+    $('body').on('click', '.bx-calendar-cell.disabled', function(event){
+        event.preventDefault();
+        console.log('disabled');
     })
 })
