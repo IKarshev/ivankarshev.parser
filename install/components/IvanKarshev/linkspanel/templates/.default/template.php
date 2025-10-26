@@ -37,8 +37,8 @@ $currentData = new \DateTime();
 		</div>
 	</div>
 	<div class="btn-row">
-		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XlsSections'?>" class="ui-btn ui-btn-success">Скачать xls по разделам</a>
-		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XlsCompetitor'?>" class="ui-btn ui-btn-success">Скачать xls по конкурентам</a>
+		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=section_structur&date='.$currentData->format('d.m.Y')?>" class="ui-btn ui-btn-success js-download-btn-section-structur">Скачать xls по разделам</a>
+		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=competitor_structur&date='.$currentData->format('d.m.Y')?>" class="ui-btn ui-btn-success js-download-btn-competitor-structur">Скачать xls по конкурентам</a>
 		<button class="ui-btn ui-btn-primary js-new-item-popup">Добавить ссылку</button>
 	</div>
 </div>
@@ -82,5 +82,5 @@ $currentData = new \DateTime();
 	// Передаем значения в JS
 	var arResult = <?=CUtil::PhpToJSObject($arResult)?>;
 	var templateFolder = <?=CUtil::PhpToJSObject($templateFolder)?>;
-
+	var DownloadUrlTemplate = <?=CUtil::PhpToJSObject("/".Helper::GetModuleDirrectory(). '/modules/ivankarshev.parser/script/download-file.php?format=#FORMAT#&date=#DATE#')?>;
 </script>

@@ -8,14 +8,14 @@ trait DocumentFormatTrait
         return $this->createMarkup();
     }
 
-    public function saveFile(): int
+    public function saveFile($fileNamePrefix='pricelist_section'): int
     {
         $output = $this->createMarkup();
         $datetime = (new \DateTime())
             ->setTimeZone(new \DateTimeZone('Asia/Novosibirsk'))
             ->format('dmY');
 
-        $fileName = 'pricelist_'.$datetime.'.xls';
+        $fileName = $fileNamePrefix.'_'.$datetime.'.xls';
         
         $fileId = \CFile::SaveFile(
             [

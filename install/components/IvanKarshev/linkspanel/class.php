@@ -862,9 +862,21 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 (new DbDateTime($date))->add('1 day'),
             );
 
+            $result = [
+                'section_structur' => false,
+                'competitor_structur' => false,
+            ];
 
+            foreach ($dateItems as $arFile) {
+                if (str_contains($arFile['ORIGINAL_NAME'], 'section_structur')) {
+                    $result['section_structur'] = true;
+                }
+                if (str_contains($arFile['ORIGINAL_NAME'], 'competitor_structur')) {
+                    $result['competitor_structur'] = true;
+                }
+            }
 
-            return $dateItems;
+            return $result;
         } catch (\Throwable $th) {
             throw $th;
         }

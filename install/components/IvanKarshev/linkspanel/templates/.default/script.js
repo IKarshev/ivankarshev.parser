@@ -73,17 +73,40 @@ function onDatePickCallback() {
         },
     }).then(
         response => {
-            
+            if (response.data!==null) {
+                let section_structur_url = DownloadUrlTemplate
+                    .replace('#FORMAT#', 'section_structur')
+                    .replace('#DATE#', $('input[name=datePicker]').val());
+
+                let competitor_structur_url = DownloadUrlTemplate
+                    .replace('#FORMAT#', 'competitor_structur')
+                    .replace('#DATE#', $('input[name=datePicker]').val());
+
+                $('.js-download-btn-section-structur').attr('href', section_structur_url);
+                $('.js-download-btn-competitor-structur').attr('href', competitor_structur_url);
+
+                if (response.data?.section_structur) {
+                    $('.js-download-btn-section-structur').removeClass('ui-btn-disabled');
+                } else {
+                    $('.js-download-btn-section-structur').addClass('ui-btn-disabled');
+                }
+
+                if (response.data?.competitor_structur) {
+                    $('.js-download-btn-competitor-structur').removeClass('ui-btn-disabled');
+                } else {
+                    $('.js-download-btn-competitor-structur').addClass('ui-btn-disabled');
+                }
+            }
         },
         error => {
             alert('Error: ' + error);
         },
     );
-
 }
 
 $(function(){
     var calendarPicker = undefined;
+ 
     $('body').on('click', '.js-new-item-popup', function(event){
         event.preventDefault();
 
@@ -140,7 +163,9 @@ $(function(){
                     response => {
                         $(links).each(function(){
                             if (response.data === null) {
-                                $(this).addClass('disabled');
+                                if (!$(this).hasClass('bx-calendar-date-hidden')) {
+                                    $(this).addClass('disabled');
+                                }
                             } else {
                                 if (!$(this).hasClass('bx-calendar-date-hidden')) {
                                     if (!response.data.includes( $(this).html() )) {
@@ -170,8 +195,7 @@ $(function(){
         }
     })
 
-    $('body').on('click', '.bx-calendar-cell.disabled', function(event){
+    $('body').on('click', '.bx-calendar-cell.disabled, .js-download-btn-section-structur.ui-btn-disabled, .js-download-btn-competitor-structur.ui-btn-disabled', function(event){
         event.preventDefault();
-        console.log('disabled');
     })
 })

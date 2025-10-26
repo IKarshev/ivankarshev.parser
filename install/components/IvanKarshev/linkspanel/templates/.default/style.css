@@ -21,6 +21,11 @@
   text-decoration: line-through;
 }
 
+.bx-calendar-cell:not(.disabled, .bx-calendar-date-hidden) {
+  background-color: rgb(98, 230, 98);
+  color: #fff;
+}
+
 .filter-btn-row {
   display: flex;
   flex-direction: row;
