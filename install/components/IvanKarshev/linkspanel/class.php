@@ -15,8 +15,11 @@ use Ivankarshev\Parser\Main\Logger;
 use Ivankarshev\Parser\Options\OptionManager;
 use Ivankarshev\Parser\Orm\{LinkTargerTable, PriceTable, CompetitorTable};
 use Ivankarshev\Parser\PriceParser\PriceParserQueueManager;
+use Ivankarshev\Parser\Documents\DocumentDateHelper;
+
 use Ivankarshev\Parser\Exceptions\LinkExistException;
 
+use Bitrix\Main\Type\DateTime as DbDateTime;
 
 Loader::includeModule('iblock');
 Loader::includeModule('ivankarshev.parser');
@@ -81,6 +84,21 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
         ],
     ];
     
+    private const MONTH_NUMBER = [
+        'Январь' => 1,
+        'Февраль' => 2,
+        'Март' => 3,
+        'Апрель' => 4,
+        'Май' => 5,
+        'Июнь' => 6,
+        'Июль' => 7,
+        'Август' => 8,
+        'Сентябрь' => 9,
+        'Октябрь' => 10,
+        'Ноябрь' => 11,
+        'Декабрь' => 12,
+    ];
+
     public function configureActions(){
         return [
             // 'EditLinkData' => ['prefilters' => [],'postfilters' => []],
@@ -802,6 +820,76 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                     }
                 }
             }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public static function getAvailableFileDateListAction()
+    {
+        try {
+            $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
+
+            $startDate = $request->getPost('START_DATE');
+            $endDate = $request->getPost('END_DATE');
+
+            $month = self::MONTH_NUMBER[$request->getPost('MONTH_NAME')];
+            $year = $request->getPost('YEAR_NUMBER');
+
+            $dateItems = DocumentDateHelper::getFileListForPerion(
+                new DbDateTime("$startDate.$month.$year"),
+                (new DbDateTime("$endDate.$month.$year"))->add('1 day'),
+            );
+
+            foreach ($dateItems as $item) {
+                $result[] = $item['TIMESTAMP_X']->format('d');
+            }
+
+            // Добавляем сегодняшний день. т.к. для него формируем налету.
+            $currentDate = new DbDateTime();
+            if (isset($result) && !empty($result)) {
+                if (
+                    !in_array((new DbDateTime())->format('d'), $result) &&
+                    ($currentDate >= new DbDateTime("$startDate.$month.$year") && $currentDate <= (new DbDateTime("$endDate.$month.$year"))->add('1 day'))
+                ) {
+                    $result[] = $currentDate->format('d');
+                }
+            } elseif ($currentDate >= new DbDateTime("$startDate.$month.$year") && $currentDate <= (new DbDateTime("$endDate.$month.$year"))->add('1 day')) {
+                $result[] = $currentDate->format('d');    
+            }
+
+            return $result;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public static function getAvailableFilesFormDayAction()
+    {
+        try {
+            $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
+            $date = $request->getPost('DATE');
+
+            $dateItems = DocumentDateHelper::getFileListForPerion(
+                new DbDateTime($date),
+                (new DbDateTime($date))->add('1 day'),
+            );
+
+            $result = [
+                'section_structur' => $date === (new DbDateTime())->format('d.m.Y'),
+                'competitor_structur' => $date === (new DbDateTime())->format('d.m.Y'),
+            ];
+
+            foreach ($dateItems as $arFile) {
+                if (str_contains($arFile['ORIGINAL_NAME'], 'section_structur')) {
+                    $result['section_structur'] = true;
+                }
+                if (str_contains($arFile['ORIGINAL_NAME'], 'competitor_structur')) {
+                    $result['competitor_structur'] = true;
+                }
+            }
+
+            return $result;
         } catch (\Throwable $th) {
             throw $th;
         }

@@ -7,7 +7,7 @@ use Ivankarshev\Parser\Helper;
 
 \Bitrix\Main\Loader::includeModule('ivankarshev.parser');
 
-CJSCore::Init(['jquery']);
+CJSCore::Init(['jquery', 'fx', 'calendar']);
 $this->addExternalJS($templateFolder."/assets/js/jquery.validate.min.js");
 $this->addExternalJS($templateFolder."/assets/js/jqueryValidateCustomRules.js");
 
@@ -20,6 +20,7 @@ $nav->allowAllRecords(true)
     ->initFromUri();
 $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 
+$currentData = new \DateTime();
 ?>
 
 <div class="filter-btn-row">
@@ -31,10 +32,13 @@ $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 			'ENABLE_LIVE_SEARCH' => true,
 			'ENABLE_LABEL' => true
 		]);*/?>
+		<div class="ui-ctl ui-ctl-textbox ui-ctl-inline">
+			<input type="text" style="width: 80px;" class="ui-ctl-element js-date-picker" value="<?//=$currentData->format('d.m.Y')?>" name="datePicker" onclick="BX.calendar({node: this, field: this, bTime: false, callback_after: onDatePickCallback});">
+		</div>
 	</div>
 	<div class="btn-row">
-		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XlsSections'?>" class="ui-btn ui-btn-success">Скачать xls по разделам</a>
-		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=XlsCompetitor'?>" class="ui-btn ui-btn-success">Скачать xls по конкурентам</a>
+		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=section_structur&date='.$currentData->format('d.m.Y')?>" class="ui-btn ui-btn-success js-download-btn-section-structur">Скачать xls по разделам</a>
+		<a href="/<?=Helper::GetModuleDirrectory() . '/modules/ivankarshev.parser/script/download-file.php?format=competitor_structur&date='.$currentData->format('d.m.Y')?>" class="ui-btn ui-btn-success js-download-btn-competitor-structur">Скачать xls по конкурентам</a>
 		<button class="ui-btn ui-btn-primary js-new-item-popup">Добавить ссылку</button>
 	</div>
 </div>
@@ -48,12 +52,9 @@ $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 		'NAV_OBJECT' => $nav,
 		'AJAX_ID' => \CAjax::getComponentID('bitrix:main.ui.grid', '.default', ''),
 		'PAGE_SIZES' =>  [
-			['NAME' => '1', 'VALUE' => '1'],
-			['NAME' => '2', 'VALUE' => '2'],
-
 			['NAME' => '20', 'VALUE' => '20'],
-			// ['NAME' => '50', 'VALUE' => '50'],
-			// ['NAME' => '100', 'VALUE' => '100']
+			['NAME' => '50', 'VALUE' => '50'],
+			['NAME' => '100', 'VALUE' => '100']
 		],
 		'AJAX_MODE' => 'Y',
 		'AJAX_OPTION_JUMP'          => 'N',
@@ -75,12 +76,11 @@ $nav->setRecordCount( $arResult['TOTAL_ELEMENTS'] );
 	]);?>
 </div>
 
-<div id="EditProfileContainer" style="display:none;">
-	<pre>test</pre>
-</div>
+<div id="EditProfileContainer" style="display:none;"></div>
 
 <script>
 	// Передаем значения в JS
 	var arResult = <?=CUtil::PhpToJSObject($arResult)?>;
 	var templateFolder = <?=CUtil::PhpToJSObject($templateFolder)?>;
+	var DownloadUrlTemplate = <?=CUtil::PhpToJSObject("/".Helper::GetModuleDirrectory(). '/modules/ivankarshev.parser/script/download-file.php?format=#FORMAT#&date=#DATE#')?>;
 </script>

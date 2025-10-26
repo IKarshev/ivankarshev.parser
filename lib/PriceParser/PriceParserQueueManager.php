@@ -10,6 +10,8 @@ use Ivankarshev\Parser\PriceParser\ParsingManager;
 
 use Ivankarshev\Parser\Documents\Format\XLS as DownloadSectionXLS;
 use Ivankarshev\Parser\Documents\Format\XLSCompetitorStructur as DownloadCompetitorXLS;
+use Ivankarshev\Parser\Documents\DocumentDateHelper;
+
 class PriceParserQueueManager
 {
     public static function addItemToQueue(int $linkId)
@@ -96,13 +98,40 @@ class PriceParserQueueManager
                             'select' => ['ID'],
                             'filter' => ['LINK_ID' => $element['ID']],
                             'limit' => 1,
-                        ])->fetchAll();
+                        ])->fetch();
+
                         if (!empty($elementData)) {
-                            ParseQueueTable::delete($elementData[0]['ID']);
+                            ParseQueueTable::delete($elementData['ID']);
+                        };
+
+                        $hasItemInQueue = (bool) ParseQueueTable::getList(['select' => ['ID'], 'limit' => 1])->getSelectedRowsCount();
+                        if (!$hasItemInQueue) {
+                            // Хит, когда парсинг закончился. Не вызывается, если очередь и так была пуста.
+                            // Удаляем все файлы, созданные за сегодня.
+                            $fileList = DocumentDateHelper::getFileListForPerion(
+                                new DateTime((new DateTime())->format('d.m.Y'))
+                            );
+                            if (!empty($fileList)) {
+                                foreach (array_column($fileList, 'ID') as $fileId) {
+                                    \CFile::Delete($fileId);
+                                }
+                            }
+
+                            // Формируем и сохраняем новые файлы.
+                            // Файл со структурой разделов
+                            $FileSectionStructurDownloader = new DownloadSectionXLS(
+                                \Bitrix\Main\Application::getDocumentRoot().'/'.Helper::GetModuleDirrectory().'/modules/ivankarshev.parser/assets/DocumentMarkup/XlsMarkup.php'
+                            );
+                            $SectionFileId = $FileSectionStructurDownloader->SaveFile('pricelist_section_structur');
+
+                            // Файл со структурой конкурентов
+                            $FileCompetitorStructurDownloader = new DownloadCompetitorXLS(
+                                \Bitrix\Main\Application::getDocumentRoot().'/'.Helper::GetModuleDirrectory().'/modules/ivankarshev.parser/assets/DocumentMarkup/XlsMarkup.php'
+                            );
+                            $CompetitorFileId = $FileCompetitorStructurDownloader->SaveFile('pricelist_competitor_structur');
                         }
                     }
                 }
-                
             }
         }
 
@@ -142,17 +171,9 @@ class PriceParserQueueManager
     public static function sendPriceListEmailAgent()
     {
         try {
-            // Файл со структурой разделов
-            $FileSectionStructurDownloader = new DownloadSectionXLS(
-                \Bitrix\Main\Application::getDocumentRoot().'/'.Helper::GetModuleDirrectory().'/modules/ivankarshev.parser/assets/DocumentMarkup/XlsMarkup.php'
+            $fileList = DocumentDateHelper::getFileListForPerion(
+                new DateTime((new DateTime())->format('d.m.Y'))
             );
-            $SectionFileId = $FileSectionStructurDownloader->SaveFile();
-
-            // Файл со структурой конкурентов
-            $FileCompetitorStructurDownloader = new DownloadCompetitorXLS(
-                \Bitrix\Main\Application::getDocumentRoot().'/'.Helper::GetModuleDirrectory().'/modules/ivankarshev.parser/assets/DocumentMarkup/XlsMarkup.php'
-            );
-            $CompetitorFileId = $FileCompetitorStructurDownloader->SaveFile();
 
             \CEvent::Send(
                 IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
@@ -160,7 +181,7 @@ class PriceParserQueueManager
                 [],
                 'Y',
                 '',
-                [$SectionFileId, $CompetitorFileId]
+                !empty($fileList) ? array_column($fileList, 'ID') : []
             );
         } catch (\Throwable $th) {
             Logger::error('Ошибка при отправке письма с прайс листом', [
