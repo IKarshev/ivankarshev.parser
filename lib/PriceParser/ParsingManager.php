@@ -25,6 +25,10 @@ class ParsingManager
             return $class;
         } elseif(class_exists($class = $parserClass(Helper::translit($domain)))) {
             return $class;
+        } elseif(class_exists($class = $parserClass(
+            Helper::translit(idn_to_utf8($domain, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46))
+            ))) {
+            return $class;
         } else {
             return null;
         }
