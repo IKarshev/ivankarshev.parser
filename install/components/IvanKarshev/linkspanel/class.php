@@ -622,6 +622,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 // '7pack.pro',
                 'p-z-o.com',
                 // 'bristolgroup.ru',
+                'zavod-pt.ru',
             ];
             foreach ($siteList as $siteDomain) {
                 if ($siteInfo = $siteData($siteDomain)) {
