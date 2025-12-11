@@ -7,6 +7,7 @@ use Ivankarshev\Parser\Main\Logger;
 use Ivankarshev\Parser\Helper;
 use Ivankarshev\Parser\Orm\{LinkTargerTable, ParseQueueTable, PriceTable};
 use Ivankarshev\Parser\PriceParser\ParsingManager;
+use Ivankarshev\Parser\Options\OptionManager;
 
 use Ivankarshev\Parser\Documents\Format\XLS as DownloadSectionXLS;
 use Ivankarshev\Parser\Documents\Format\XLSCompetitorStructur as DownloadCompetitorXLS;
@@ -174,6 +175,23 @@ class PriceParserQueueManager
             $fileList = DocumentDateHelper::getFileListForPerion(
                 new DateTime((new DateTime())->format('d.m.Y'))
             );
+
+            $OptionManager = new OptionManager();
+            if ($notSendSectionEmailOption = $OptionManager->getOption('NOT_SEND_SECTION_EMAIL')) {
+                if ($notSendSectionEmailOption->getValue()) {
+                    $fileList = array_filter($fileList, function($item){
+                        return !str_contains($item['ORIGINAL_NAME'], 'pricelist_section_structur');
+                    });
+                } 
+            }
+
+            if ($notSendCompetitorStructureEmailOption = $OptionManager->getOption('NOT_SEND_COMPETITOR_STRUCTURE_EMAIL')) {
+                if ($notSendCompetitorStructureEmailOption->getValue()) {
+                    $fileList = array_filter($fileList, function($item){
+                        return !str_contains($item['ORIGINAL_NAME'], 'pricelist_competitor_structur');
+                    });
+                } 
+            }
 
             \CEvent::Send(
                 IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,

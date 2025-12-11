@@ -36,7 +36,19 @@ class OptionList
                         Loc::getMessage("COMPETITOR_STRUCTURE_IBLOCK_ID"),
                         '',
                         array("selectbox"),
-                    )
+                    ),
+                    array(
+                        "NOT_SEND_SECTION_EMAIL",
+                        Loc::getMessage("NOT_SEND_SECTION_EMAIL"),
+                        '',
+                        array("checkbox"),
+                    ),
+                    array(
+                        "NOT_SEND_COMPETITOR_STRUCTURE_EMAIL",
+                        Loc::getMessage("NOT_SEND_COMPETITOR_STRUCTURE_EMAIL"),
+                        '',
+                        array("checkbox"),
+                    ),
                 ]
             ],
             [
