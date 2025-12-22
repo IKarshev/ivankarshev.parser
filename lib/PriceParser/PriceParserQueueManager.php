@@ -177,21 +177,27 @@ class PriceParserQueueManager
             );
 
             $OptionManager = new OptionManager();
-            if ($notSendSectionEmailOption = $OptionManager->getOption('NOT_SEND_SECTION_EMAIL')) {
-                if ($notSendSectionEmailOption->getValue()) {
-                    $fileList = array_filter($fileList, function($item){
-                        return !str_contains($item['ORIGINAL_NAME'], 'pricelist_section_structur');
+            
+            if ($sendSectionEmailOption = $OptionManager->getOption('SEND_SECTION_EMAIL')) {
+                if ($sendSectionEmailOption->getValue()) {
+                    $sectionFileList = array_filter($fileList, function ($item) {
+                        return str_contains($item['ORIGINAL_NAME'], 'pricelist_section_structur');
                     });
-                } 
+                }
             }
 
-            if ($notSendCompetitorStructureEmailOption = $OptionManager->getOption('NOT_SEND_COMPETITOR_STRUCTURE_EMAIL')) {
-                if ($notSendCompetitorStructureEmailOption->getValue()) {
-                    $fileList = array_filter($fileList, function($item){
-                        return !str_contains($item['ORIGINAL_NAME'], 'pricelist_competitor_structur');
+            if ($sendCompetitorStructureEmailOption = $OptionManager->getOption('SEND_COMPETITOR_STRUCTURE_EMAIL')) {
+                if ($sendCompetitorStructureEmailOption->getValue()) {
+                    $competitorFileList = array_filter($fileList, function ($item) {
+                        return str_contains($item['ORIGINAL_NAME'], 'pricelist_competitor_structur');
                     });
-                } 
+                }
             }
+
+            $resultFileList = array_merge(
+                $sectionFileList ?? [],
+                $competitorFileList ?? [],
+            );
 
             \CEvent::Send(
                 IVAN_KARSHEV_PARSER_MODULE_SEND_PRICE_LIST_MAIL_EVENTNAME,
@@ -199,7 +205,7 @@ class PriceParserQueueManager
                 [],
                 'Y',
                 '',
-                !empty($fileList) ? array_column($fileList, 'ID') : []
+                !empty($resultFileList) ? array_column($resultFileList, 'ID') : []
             );
         } catch (\Throwable $th) {
             Logger::error('Ошибка при отправке письма с прайс листом', [

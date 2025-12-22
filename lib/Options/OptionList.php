@@ -38,14 +38,14 @@ class OptionList
                         array("selectbox"),
                     ),
                     array(
-                        "NOT_SEND_SECTION_EMAIL",
-                        Loc::getMessage("NOT_SEND_SECTION_EMAIL"),
+                        "SEND_SECTION_EMAIL",
+                        Loc::getMessage("SEND_SECTION_EMAIL"),
                         '',
                         array("checkbox"),
                     ),
                     array(
-                        "NOT_SEND_COMPETITOR_STRUCTURE_EMAIL",
-                        Loc::getMessage("NOT_SEND_COMPETITOR_STRUCTURE_EMAIL"),
+                        "SEND_COMPETITOR_STRUCTURE_EMAIL",
+                        Loc::getMessage("SEND_COMPETITOR_STRUCTURE_EMAIL"),
                         '',
                         array("checkbox"),
                     ),
