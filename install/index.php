@@ -199,6 +199,7 @@ Class Ivankarshev_Parser extends CModule
         CompetitorTable::add(['NAME' => 'p-z-o.com']);
         // CompetitorTable::add(['NAME' => 'bristolgroup.ru']); // нет ценников
         CompetitorTable::add(['NAME' => 'zavod-pt.ru']); // нет ценников
+        CompetitorTable::add(['NAME' => 't-sib.ru']);
         
         return true;
     }

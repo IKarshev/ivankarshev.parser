@@ -624,6 +624,7 @@ class KonturPaymentProfilesComponent extends CBitrixComponent implements Control
                 // 'bristolgroup.ru',
                 'zavod-pt.ru',
                 'foshanmachinery.ru',
+                't-sib.ru',
             ];
             foreach ($siteList as $siteDomain) {
                 if ($siteInfo = $siteData($siteDomain)) {
