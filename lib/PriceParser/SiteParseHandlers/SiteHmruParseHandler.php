@@ -12,7 +12,7 @@ class SiteHmruParseHandler extends AbstractSiteParseHandler implements SiteParse
 {
     public function parsePrice(Crawler $crawler): ?float
     {
-        $crawler = $crawler->filter('.product-aside__price_sum');
+        $crawler = $crawler->filter('.product__price-block .product__price');
         $response = $crawler->each(function(Crawler $node, $i){
             return $node->text();
         });
